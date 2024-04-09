@@ -13,5 +13,4 @@ interface LowCodeCommonStyle {
     left: string,
     width: string,
     height: string,
-    'z-index': string
 }

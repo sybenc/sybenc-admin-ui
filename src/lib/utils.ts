@@ -31,6 +31,21 @@ export function deepCopy(obj: any): any {
     return clonedObj;
 }
 // 主要用于 Vue 的 diff 算法，为每个元素创建一个独一无二的 ID
-export default function generateID() {
+export function generateID() {
     return nanoid()
+}
+
+/**
+ * 交换数组中的两个元素
+ * @param array 要交换的数组
+ * @param index1 索引1的位置
+ * @param index2 索引2的位置
+ */
+export function swap<T>(array: T[], index1: number, index2: number): void {
+    if (index1 < 0 || index1 >= array.length || index2 < 0 || index2 >= array.length) {
+        throw new Error('Index out of bounds')
+    }
+    const temp = array[index1]
+    array[index1] = array[index2]
+    array[index2] = temp
 }

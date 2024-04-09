@@ -6,6 +6,7 @@ import {
 export const circleDefaultConfig: LowCodeCircleComponent = {
     id: '',
     component: 'Circle',
+    layer: 0,
     group: 'geometry',
     icon: 'fluent:circle-28-regular',
     label: '椭圆形',
@@ -15,7 +16,6 @@ export const circleDefaultConfig: LowCodeCircleComponent = {
         ...geometryCommonStyle,
         'border-radius': '50%',
         border: '1px solid transparent',
-        'z-index': '0',
     },
     propsValue: {},
 }

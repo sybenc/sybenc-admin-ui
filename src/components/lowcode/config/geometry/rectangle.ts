@@ -6,6 +6,7 @@ import {
 export const rectangleDefaultConfig: LowCodeRectangleComponent = {
     id: '',
     component: 'Rectangle',
+    layer: 0,
     group: 'geometry',
     icon: 'fluent:rectangle-landscape-24-regular',
     label: '矩形',
@@ -14,7 +15,6 @@ export const rectangleDefaultConfig: LowCodeRectangleComponent = {
     style: {
         ...geometryCommonStyle,
         border: '1px solid transparent ',
-        'z-index': '0',
     },
     propsValue: {},
 }

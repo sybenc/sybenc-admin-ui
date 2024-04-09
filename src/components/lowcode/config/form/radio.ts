@@ -3,6 +3,7 @@ import {formCommonStyle, formCommonStyleMap} from "@/components/lowcode/config/f
 export const radioDefaultConfig: LowCodeRadioComponent = {
     id: '',
     component: 'Radio',
+    layer: 0,
     group: 'form',
     icon: 'fluent:checkmark-circle-24-regular',
     label: '单选框',
@@ -10,7 +11,6 @@ export const radioDefaultConfig: LowCodeRadioComponent = {
     events: {},
     style: {
         ...formCommonStyle,
-        'z-index': '0',
     },
     propsValue: {
         id: ['0','1'],

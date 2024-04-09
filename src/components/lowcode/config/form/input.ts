@@ -3,6 +3,7 @@ import {formCommonIcon, formCommonStyle, formCommonStyleMap} from "@/components/
 export const inputDefaultConfig: LowCodeInputComponent = {
     id: '',
     component: 'Input',
+    layer: 0,
     group: 'form',
     icon: formCommonIcon,
     label: '输入框',
@@ -10,7 +11,6 @@ export const inputDefaultConfig: LowCodeInputComponent = {
     events: {},
     style: {
         ...formCommonStyle,
-        'z-index': '0',
     },
     propsValue: {
         id: 'id',

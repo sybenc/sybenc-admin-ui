@@ -80,7 +80,6 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       <template v-for="(item, index) in canvasData" :key="item.id">
         <LowCodeCanvasComponentShape
             :component="item"
-            :z-index="index"
             @dragstart="handleDragStart($event, index)"
             @mousedown.left.stop="handleMouseDown($event, item)">
           <component

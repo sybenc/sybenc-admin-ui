@@ -1,6 +1,6 @@
 import {defineStore} from "pinia"
 import {reactive, ref} from "vue";
-import generateID from "@/lib/utils.ts";
+import {generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/widget";
 
@@ -30,8 +30,8 @@ export const useLowCodeStore = defineStore('low-code', () => {
     const addComponentOnCanvas = (component: CommonComponentConfig) => {
         //指定组件唯一ID
         component.id = generateID()
-        //设置层级
-        component.style['z-index'] = canvasData.length
+        //置顶元素层级
+        component.layer = canvasData.length
         canvasData.unshift(component)
     }
     const getComponent = (groupName: string, componentName: string) => {
@@ -47,34 +47,41 @@ export const useLowCodeStore = defineStore('low-code', () => {
         scaleShow.value = !scaleShow.value
     }
 
-    const deleteComponentByIndex = (index: number) => {
+    /**
+     * 将指定的组件删除
+     * @param {CommonComponentConfig} component - 要删除的组件
+     */
+    const deleteComponent = (component: CommonComponentConfig) => {
+        const index = canvasData.findIndex((item: CommonComponentConfig) => item.id === component.id)
         canvasData.splice(index, 1)
     }
 
     /**
-     * 将指定索引的组件置于画布底部
-     * @param {number} index - 要置底的组件索引
+     * 将指定的组件置于画布底部
+     * @param {CommonComponentConfig} component - 要置底的组件
      */
-    const setBottomComponentByIndex = (index: number) => {
-        if (index < 0 || index >= canvasData.length) {
-            throw new Error("Index out of bounds.")
-        }
-        let tempComponent = canvasData[canvasData.length - 1]
-        canvasData[canvasData.length - 1] = canvasData[index]
-        canvasData[index] = tempComponent
+    const setBottomComponent = (component: CommonComponentConfig) => {
+        const index1 = canvasData.findIndex((item: CommonComponentConfig) => item.id === component.id)
+        const index2 = canvasData.length - 1
+        //调整元素层级
+        const tempLayer = canvasData[index1].layer
+        canvasData[index1].layer = canvasData[index2].layer
+        canvasData[index2].layer = tempLayer
+        swap(canvasData, index1, index2)
     }
 
     /**
-     * 将指定索引的组件置于画布顶部
-     * @param {number} index - 要置顶的组件索引
+     * 将指定的组件置于画布顶部
+     * @param {CommonComponentConfig} component - 要置顶的组件
      */
-    const setTopComponentByIndex = (index: number) => {
-        if (index < 0 || index >= canvasData.length) {
-            throw new Error("Index out of bounds.")
-        }
-        let tempComponent = canvasData[0]
-        canvasData[0] = canvasData[index]
-        canvasData[index] = tempComponent
+    const setTopComponent = (component: CommonComponentConfig) => {
+        const index1 = canvasData.findIndex((item: CommonComponentConfig) => item.id === component.id)
+        const index2 = 0
+        //调整元素层级
+        const tempLayer = canvasData[index1].layer
+        canvasData[index1].layer = canvasData[index2].layer
+        canvasData[index2].layer = tempLayer
+        swap(canvasData, index1, index2)
     }
 
 
@@ -90,8 +97,8 @@ export const useLowCodeStore = defineStore('low-code', () => {
         setCanvasCurrentSelected,
         setScaleShow,
         getCurrentGroupDefaultConfigListByName,
-        deleteComponentByIndex,
-        setBottomComponentByIndex,
-        setTopComponentByIndex
+        deleteComponent,
+        setBottomComponent,
+        setTopComponent
     }
 })

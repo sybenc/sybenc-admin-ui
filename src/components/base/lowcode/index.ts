@@ -1,5 +1,5 @@
 export {default as LowCodeAttribute} from '@/components/base/lowcode/attr/LowCodeAttribute.vue'
 export {default as LowCodeCanvas} from '@/components/base/lowcode/canvas/LowCodeCanvas.vue'
-export {default as LowCodeZIndexList} from '@/components/base/lowcode/zindex/LowCodeZIndexList.vue'
+export {default as LowCodeZIndexList} from '@/components/base/lowcode/layer/LowCodeZIndexList.vue'
 export {default as LowCodeComponentList} from '@/components/base/lowcode/component/LowCodeComponentList.vue'
 export {default as LowCodeBar} from '@/components/base/lowcode/bar/LowCodeBar.vue'

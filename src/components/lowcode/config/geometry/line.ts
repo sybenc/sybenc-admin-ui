@@ -6,6 +6,7 @@ import {
 export const lineDefaultConfig: LowCodeLineComponent = {
     id: '',
     component: 'Line',
+    layer: 0,
     group: 'geometry',
     icon: 'fluent:line-24-regular',
     label: '直线',
@@ -13,7 +14,6 @@ export const lineDefaultConfig: LowCodeLineComponent = {
     events: {},
     style: {
         ...geometryCommonStyle,
-        'z-index': '0',
         height: '3px',
         'border-bottom': '3px solid black'
     },
