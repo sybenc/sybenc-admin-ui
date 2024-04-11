@@ -4,7 +4,7 @@ interface LowCodeRadioPropsValue {
     value: string[],
 }
 
-interface LowCodeRadioStyle extends LowCodeCommonStyle {
+interface LowCodeRadioStyle extends CommonComponentStyle {
 
 }
 

@@ -4,6 +4,7 @@ export const inputDefaultConfig: LowCodeInputComponent = {
     id: '',
     component: 'Input',
     layer: 0,
+    lock: false,
     group: 'form',
     icon: formCommonIcon,
     label: '输入框',

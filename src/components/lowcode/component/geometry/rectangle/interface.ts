@@ -6,7 +6,7 @@ interface LowCodeRectanglePropsValue {}
 /**
  * Rectangle组件的样式控制接口
  */
-interface LowCodeRectangleStyle extends LowCodeCommonStyle {
+interface LowCodeRectangleStyle extends CommonComponentStyle {
     border: string
 }
 

@@ -7,7 +7,7 @@ interface LowCodeLinePropsValue {
 /**
  * Line组件的样式控制接口
  */
-interface LowCodeLineStyle extends LowCodeCommonStyle {
+interface LowCodeLineStyle extends CommonComponentStyle {
     'border-bottom': string
 }
 

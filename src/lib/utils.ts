@@ -17,19 +17,33 @@ export function generateLowCodeStyle(style: LowCodeInputStyle | undefined): stri
     return styleAttr
 }
 
-// 深拷贝去除响应式
-export function deepCopy(obj: any): any {
-    if (obj === null || typeof obj !== 'object') {
+// 深拷贝
+export function deepCopy<T>(obj: T): T {
+    if (typeof obj !== 'object' || obj === null) {
+        // 如果是基本类型或 null，则直接返回
         return obj;
     }
-    const clonedObj: any = Array.isArray(obj) ? [] : {};
-    for (let key in obj) {
+
+    // 如果是数组，则创建一个新数组并递归复制每个元素
+    if (Array.isArray(obj)) {
+        const newArray: any[] = [];
+        for (const item of obj) {
+            newArray.push(deepCopy(item));
+        }
+        return newArray as T;
+    }
+
+    // 如果是对象，则创建一个新对象并递归复制每个属性
+    const newObj: Record<string, any> = {};
+    for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            clonedObj[key] = deepCopy(obj[key]);
+            newObj[key] = deepCopy(obj[key]);
         }
     }
-    return clonedObj;
+    return newObj as T;
 }
+
+
 // 主要用于 Vue 的 diff 算法，为每个元素创建一个独一无二的 ID
 export function generateID() {
     return nanoid()
@@ -48,4 +62,26 @@ export function swap<T>(array: T[], index1: number, index2: number): void {
     const temp = array[index1]
     array[index1] = array[index2]
     array[index2] = temp
+}
+
+export function diff(oldObj: any, newObj: any): boolean {
+    // 检查新对象中新增的属性或者值不同的属性
+    for (const key in newObj) {
+        if (Object.prototype.hasOwnProperty.call(newObj, key)) {
+            if (!Object.prototype.hasOwnProperty.call(oldObj, key)) {
+                return false; // 新增的属性
+            } else if (oldObj[key] !== newObj[key]) {
+                return false; // 值不同的属性
+            }
+        }
+    }
+
+    // 检查旧对象中被删除的属性
+    for (const key in oldObj) {
+        if (Object.prototype.hasOwnProperty.call(oldObj, key) && !Object.prototype.hasOwnProperty.call(newObj, key)) {
+            return false; // 被删除的属性
+        }
+    }
+
+    return true; // 没有差异
 }

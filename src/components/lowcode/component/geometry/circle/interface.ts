@@ -6,7 +6,7 @@ interface LowCodeCirclePropsValue {}
 /**
  * Circle组件的样式控制接口
  */
-interface LowCodeCircleStyle extends LowCodeCommonStyle {
+interface LowCodeCircleStyle extends CommonComponentStyle {
     'border-radius': string,
     border: string
 }

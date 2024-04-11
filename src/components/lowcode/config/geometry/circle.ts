@@ -7,6 +7,7 @@ export const circleDefaultConfig: LowCodeCircleComponent = {
     id: '',
     component: 'Circle',
     layer: 0,
+    lock: false,
     group: 'geometry',
     icon: 'fluent:circle-28-regular',
     label: '椭圆形',

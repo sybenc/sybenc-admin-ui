@@ -11,7 +11,7 @@ interface LowCodeInputPropsValue {
 /**
  * Input组件的样式控制接口
  */
-interface LowCodeInputStyle extends LowCodeCommonStyle {
+interface LowCodeInputStyle extends CommonComponentStyle {
 
 }
 

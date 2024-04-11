@@ -89,5 +89,5 @@ module.exports = {
       },
     },
   },
-  plugins: [animate],
+  plugins: [animate,require('./src/assets/tailwindcss/text.js')],
 }

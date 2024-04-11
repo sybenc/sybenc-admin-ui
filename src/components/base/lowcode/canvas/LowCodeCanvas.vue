@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import {useLowCodeStore} from "@/store/lowcode";
 import {ref, toRef} from "vue";
-import {deepCopy} from "@/lib/utils.ts";
 import LowCodeCanvasComponentShape from "@/components/base/lowcode/canvas/editor/LowCodeCanvasComponentShape.vue";
 import LowCodeCanvasScale from "@/components/base/lowcode/canvas/editor/LowCodeCanvasScale.vue";
+import {deepCopy} from "@/lib/utils.ts";
 
 const store = useLowCodeStore()
 const {
-  canvasData,
-  addComponentOnCanvas,
+  canvas,
+  createCommandAddComponent,
+  execute,
   getComponent,
-  getComponentDefaultConfig
+  getComponentDefaultConfig,
+    createCommandMoveComponent,
 } = store
 const canvasCurrentSelected = toRef(store, 'canvasCurrentSelected')
+const oldCanvasCurrentSelected = toRef(store, 'oldCanvasCurrentSelected')
 const lowCodeCanvas = ref<HTMLElement | null>(null)
 
 const handleDrop = (e: any) => {
@@ -25,18 +28,23 @@ const handleDrop = (e: any) => {
     const canvasRect = canvas.getBoundingClientRect()
     component.style.left = `${e.clientX - canvasRect.left}px`
     component.style.top = `${e.clientY - canvasRect.top}px`
-    addComponentOnCanvas(component)
+    oldCanvasCurrentSelected.value = component
+    execute(createCommandAddComponent, component)
+    canvasCurrentSelected.value = component
   }
 }
 const handleDragOver = (e: any) => {
   e.dataTransfer.dropEffect = 'copy'
 }
-const handleDragStart = (e: any, index: number) => {
-  e.dataTransfer.setData('index', index.toString());
-}
 const handleMouseDown = (e: any, component: CommonComponentConfig) => {
-  const canvas = lowCodeCanvas.value
+  //记录当前、上一个选中的组件信息
+  oldCanvasCurrentSelected.value = canvasCurrentSelected.value
   canvasCurrentSelected.value = component
+  //如果组件被锁定，直接结束
+  if (component.lock) return
+  //保存旧的位置信息，以便撤销、重做操作
+  const oldComponent = deepCopy(component)
+  const canvas = lowCodeCanvas.value
   if (canvas) {
     // 获取画布大小和视口信息
     const canvasRect = canvas.getBoundingClientRect()
@@ -58,29 +66,30 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       }
     }
     const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
+      //在鼠标抬起的时候记录操作，这时候传递的参数必须是深拷贝过的，否则无法正确执行撤销、重做操作
+      execute(createCommandMoveComponent, deepCopy(component), oldComponent)
+      canvas.removeEventListener('mousemove', onMouseMove)
+      canvas.removeEventListener('mouseup', onMouseUp)
     }
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
+    canvas.addEventListener('mousemove', onMouseMove)
+    canvas.addEventListener('mouseup', onMouseUp)
   }
 }
 </script>
 
 <template>
   <div class="relative bg-gray-100 overflow-scroll">
-    <LowCodeCanvasScale :height="1200" :width="1200"/>
+    <LowCodeCanvasScale :height="parseInt(canvas.height)" :width="parseInt(canvas.width)"/>
     <div
         ref="lowCodeCanvas"
-        class="h-full relative bg-white overflow-scroll"
+        :style="`height: ${canvas.height};width: ${canvas.width};`"
+        class="relative bg-white overflow-scroll"
         @click.left.prevent.stop="canvasCurrentSelected = null"
         @drop.prevent.stop="handleDrop($event)"
         @dragover.prevent="handleDragOver($event)">
-
-      <template v-for="(item, index) in canvasData" :key="item.id">
+      <template v-for="(item, _) in canvas.data" :key="item.id">
         <LowCodeCanvasComponentShape
             :component="item"
-            @dragstart="handleDragStart($event, index)"
             @mousedown.left.stop="handleMouseDown($event, item)">
           <component
               :is="getComponent(item.group,item.component)"

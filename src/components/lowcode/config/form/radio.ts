@@ -4,6 +4,7 @@ export const radioDefaultConfig: LowCodeRadioComponent = {
     id: '',
     component: 'Radio',
     layer: 0,
+    lock: false,
     group: 'form',
     icon: 'fluent:checkmark-circle-24-regular',
     label: '单选框',

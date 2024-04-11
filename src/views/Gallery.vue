@@ -1,17 +1,35 @@
 <script setup lang="ts">
-
-import Triangle from "@/components/lowcode/widget/geometry/triangle/Triangle.vue";
-import Line from "@/components/lowcode/widget/geometry/line/Line.vue";
+import { Button } from '@/components/ui/button'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 </script>
 
 <template>
-<div>图床</div>
-  <Triangle></Triangle>
-  <svg width="250" height="250">
-    <line x1="50" y1="50" x2="200" y2="200" stroke="black" stroke-width="2" />
-  </svg>
+  <Sheet>
+    <SheetTrigger as-child>
+      <Button variant="outline">
+        Open
+      </Button>
+    </SheetTrigger>
+    <SheetContent>
+      <SheetHeader>
+        <SheetTitle>Edit profile</SheetTitle>
+        <SheetDescription>
+          Make changes to your profile here. Click save when you're done.
+        </SheetDescription>
+      </SheetHeader>
+      <SheetFooter>
+        <SheetClose as-child>
+        </SheetClose>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
 </template>
-
-<style scoped lang="css">
-
-</style>

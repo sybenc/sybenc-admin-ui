@@ -7,10 +7,3 @@ interface LowCodeGroupItem {
     name: LowCodeGroupName,
     icon: string
 }
-
-interface LowCodeCommonStyle {
-    top: string,
-    left: string,
-    width: string,
-    height: string,
-}

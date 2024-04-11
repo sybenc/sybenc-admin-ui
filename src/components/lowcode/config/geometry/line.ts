@@ -7,6 +7,7 @@ export const lineDefaultConfig: LowCodeLineComponent = {
     id: '',
     component: 'Line',
     layer: 0,
+    lock: false,
     group: 'geometry',
     icon: 'fluent:line-24-regular',
     label: '直线',
