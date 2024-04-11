@@ -1,3 +1,7 @@
+type LowCodeGroupName = 'form'
+    | 'geometry'
+    | 'charts'
+
 interface CommonComponentConfig {
     id: string, // 唯一标识
     component: string, // vue注册的组件名
@@ -25,4 +29,10 @@ interface Snapshot {
     currentGroupName: LowCodeGroupName,
     scaleShow: boolean,
     description: string,
+}
+
+interface LowCodeGroupItem {
+    label: string,
+    name: LowCodeGroupName,
+    icon: string
 }

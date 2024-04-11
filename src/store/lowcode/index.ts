@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import {reactive, ref} from "vue";
+import {reactive, ref, watch} from "vue";
 import {generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
@@ -18,7 +18,10 @@ interface LowCodeCommand {
     index?: number,
     top?: string,
     left?: string,
-    description: string
+    description: {
+        icon: string,
+        label: string
+    }
 }
 
 interface LowCodeHistoryOperation {
@@ -27,6 +30,7 @@ interface LowCodeHistoryOperation {
     oldCanvasCurrentSelected: CommonComponentConfig | null,
 }
 
+type ToolBarController = 'LowCodeToolCanvas' | 'LowCodeToolComponent'
 export const useLowCodeStore = defineStore('low-code', () => {
     //存储画布中组件数据
     const canvas = reactive<LowCodeCanvas>({
@@ -44,11 +48,24 @@ export const useLowCodeStore = defineStore('low-code', () => {
     }
     // 当前组名称
     const currentGroupName = ref<LowCodeGroupName>('form')
+    // 是否显示量尺
     const scaleShow = ref<boolean>(true)
-
+    // 控制历史记录显示
+    const historyOperationShow = ref<boolean>(false)
+    // 控制工具栏显示
+    const toolBarController = ref<ToolBarController>('LowCodeToolCanvas')
+    // 监测canvasCurrentSelected的变化，决定工具栏应该显示什么内容
+    watch(canvasCurrentSelected, () => {
+        if (canvasCurrentSelected.value === null) {
+            if (toolBarController.value !== 'LowCodeToolCanvas')
+                toolBarController.value = 'LowCodeToolCanvas'
+        } else {
+            toolBarController.value = 'LowCodeToolComponent'
+        }
+    })
     // 历史操作记录
     const historyOperation = reactive<LowCodeHistoryOperation[]>([])
-    let historyOperationIndex = -1
+    let historyOperationIndex = ref<number>(-1)
 
     const setCurrentGroupName = (name: LowCodeGroupName) => {
         currentGroupName.value = name
@@ -66,23 +83,29 @@ export const useLowCodeStore = defineStore('low-code', () => {
         return lowCodeComponentMap[groupName][componentName]
     }
     //根据组件的注册名得到组件的默认配置
-    const getComponentDefaultConfig = (groupName: string, componentName: string): CommonComponentConfig => {
+    const getComponentDefaultConfig = (groupName: LowCodeGroupName, componentName: string): CommonComponentConfig => {
         return lowCodeDefaultConfig[groupName][componentName]
     }
 
+    /**
+     * 执行命令的函数
+     * @param createCommand 创建命令的函数
+     * @param component 命令操作的组件
+     * @param oldComponent 可选参数，如果用到命令操作之前组件的数据，需要传入
+     */
     function execute(createCommand: (component: CommonComponentConfig, oldComponent?: CommonComponentConfig) => LowCodeCommand,
                      component: CommonComponentConfig,
                      oldComponent?: CommonComponentConfig) {
         let command = createCommand(component)
-        if(oldComponent) {
+        if (oldComponent) {
             command = createCommand(component, oldComponent)
         }
         command.execute()
         // 如果在执行操作的时候，后面还有记录，则删除后续所有记录
-        if (historyOperation.length - 1 > historyOperationIndex) {
-            historyOperation.splice(historyOperationIndex + 1, historyOperation.length - 1 - historyOperationIndex)
+        if (historyOperation.length - 1 > historyOperationIndex.value) {
+            historyOperation.splice(historyOperationIndex.value + 1, historyOperation.length - 1 - historyOperationIndex.value)
         }
-        historyOperationIndex++
+        historyOperationIndex.value++
         historyOperation.push({
             command,
             canvasCurrentSelected: canvasCurrentSelected.value,
@@ -90,29 +113,47 @@ export const useLowCodeStore = defineStore('low-code', () => {
         })
     }
 
+    //撤销操作
     function undo() {
-        if (historyOperationIndex < 0) return
-        const command = historyOperation[historyOperationIndex].command
+        if (historyOperationIndex.value < 0) return
+        const command = historyOperation[historyOperationIndex.value].command
         command.undo()
-        canvasCurrentSelected.value = historyOperation[historyOperationIndex].canvasCurrentSelected
-        historyOperationIndex--
+        canvasCurrentSelected.value = historyOperation[historyOperationIndex.value].canvasCurrentSelected
+        historyOperationIndex.value--
     }
 
+    //重做操作
     function redo() {
-        if (historyOperationIndex >= historyOperation.length - 1) return
-        historyOperationIndex++
-        const command = historyOperation[historyOperationIndex].command
+        if (historyOperationIndex.value >= historyOperation.length - 1) return
+        historyOperationIndex.value++
+        const command = historyOperation[historyOperationIndex.value].command
         command.execute()
-        canvasCurrentSelected.value = historyOperation[historyOperationIndex].oldCanvasCurrentSelected
+        canvasCurrentSelected.value = historyOperation[historyOperationIndex.value].oldCanvasCurrentSelected
     }
 
+    /**
+     * 从历史记录恢复画布
+     * @param index 要恢复到的画布状态的索引
+     */
+    function recoverByHistory(index: number) {
+        if (historyOperationIndex.value >= index) {
+            for (let i = historyOperationIndex.value; i > index; i--) undo()
+        } else {
+            for (let i = historyOperationIndex.value; i < index; i++) redo()
+        }
+    }
+
+    //生成添加组件的命令，交与execute()函数处理
     function createCommandAddComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "添加一个组件",
+            description: {
+                icon: 'fluent:add-28-filled',
+                label: '添加组件'
+            },
             execute: () => {
                 //指定组件唯一ID
                 component.id = generateID()
@@ -130,13 +171,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成删除组件的命令，交与execute()函数处理
     function createCommandDeleteComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "删除一个组件",
+            description: {
+                icon: 'mynaui:x',
+                label: '删除组件'
+            },
             execute: () => {
                 canvas.data.splice(index, 1)
             },
@@ -146,6 +191,11 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    /**
+     * 用于调整组件顺序，同时调整组件层级layer
+     * @param index1 当前要交换的组件索引
+     * @param index2 目标组件索引
+     */
     const swapTwoComponent = (index1: number, index2: number) => {
         //调整元素层级
         const tempLayer = canvas.data[index1].layer
@@ -154,13 +204,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         swap(canvas.data, index1, index2)
     }
 
+    //生成置底组件的命令，交与execute()函数处理
     function createCommandSetBottomComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "置底一个组件",
+            description: {
+                icon: 'mynaui:chevron-down-square',
+                label: '置底组件'
+            },
             execute: () => {
                 //得到要交换的两个组件的索引
                 const index1 = index
@@ -176,13 +230,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成置顶组件的命令，交与execute()函数处理
     function createCommandSetTopComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "置底一个组件",
+            description: {
+                icon: 'mynaui:chevron-up-square',
+                label: '置顶组件'
+            },
             execute: () => {
                 //得到要交换的两个组件的索引
                 const index1 = index
@@ -198,13 +256,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成锁定组件的命令，交与execute()函数处理
     function createCommandLockComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "锁定一个组件",
+            description: {
+                icon: 'fluent:lock-closed-24-regular',
+                label: '锁定组件'
+            },
             execute: () => {
                 component.lock = true
             },
@@ -214,13 +276,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成解锁组件的命令，交与execute()函数处理
     function createCommandUnlockComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "解锁一个组件",
+            description: {
+                icon: 'fluent:lock-open-24-regular',
+                label: '解锁组件'
+            },
             execute: () => {
                 component.lock = false
             },
@@ -230,13 +296,17 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成移动组件的命令，交与execute()函数处理
     function createCommandMoveComponent(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
         const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
         return {
             component,
             oldComponent,
             index,
-            description: "移动一个组件",
+            description: {
+                icon: 'mynaui:move',
+                label: '移动组件'
+            },
             execute: () => {
                 canvas.data[index].style.top = component?.style.top
                 canvas.data[index].style.left = component?.style.left
@@ -254,6 +324,10 @@ export const useLowCodeStore = defineStore('low-code', () => {
         oldCanvasCurrentSelected,
         scaleShow,
         currentGroupName,
+        historyOperation,
+        toolBarController,
+        historyOperationShow,
+        historyOperationIndex,
         getComponent,
         getComponentDefaultConfig,
         setCurrentGroupName,
@@ -271,5 +345,6 @@ export const useLowCodeStore = defineStore('low-code', () => {
         createCommandLockComponent,
         createCommandUnlockComponent,
         createCommandMoveComponent,
+        recoverByHistory,
     }
 })

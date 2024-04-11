@@ -67,7 +67,11 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
     }
     const onMouseUp = () => {
       //在鼠标抬起的时候记录操作，这时候传递的参数必须是深拷贝过的，否则无法正确执行撤销、重做操作
-      execute(createCommandMoveComponent, deepCopy(component), oldComponent)
+      //如果用户仅仅只是点击了组件，则不做操作
+      const copyComponent = deepCopy(component)
+      if (!(oldComponent.style.left === component.style.left && oldComponent.style.top === component.style.top)){
+        execute(createCommandMoveComponent, copyComponent, oldComponent)
+      }
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mouseup', onMouseUp)
     }
@@ -92,7 +96,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
             :component="item"
             @mousedown.left.stop="handleMouseDown($event, item)">
           <component
-              :is="getComponent(item.group,item.component)"
+              :is="getComponent(item.group, item.component)"
               class="cursor-move"
               :style="item.style"
               :propsValue="item.propsValue"/>

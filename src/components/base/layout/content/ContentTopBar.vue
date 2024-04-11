@@ -2,14 +2,17 @@
 import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {Icon} from "@iconify/vue";
+import {Separator} from "@/components/ui/separator";
 </script>
 
 <template>
-  <div class="flex items-center top-bar">
-    <div class="flex items-center w-5/6">
-      <slot></slot>
+  <div class="flex items-center justify-between top-bar">
+    <div class="flex items-center">
+      <slot name="left" class="flex justify-start"></slot>
     </div>
-    <div class="flex flex-1 py-3 items-center justify-end h-12">
+    <div class="flex py-3 items-center justify-end h-12">
+      <slot name="right" class="flex justify-end"></slot>
+      <Separator :orientation="'vertical'" class="mx-2"></Separator>
       <Button variant="ghost" size="icon">
         <Icon icon="mynaui:earth" class="size-5"/>
       </Button>
@@ -22,12 +25,12 @@ import {Icon} from "@iconify/vue";
       <!--      <Button variant="ghost" size="icon">-->
       <!--        <Icon icon="mynaui:sun" class="size-5"/>-->
       <!--      </Button>-->
+      <Avatar class="size-7 mx-2">
+        <router-link to="/account/profile">
+          <AvatarImage src="/src/assets/avatar.jpg"></AvatarImage>
+        </router-link>
+      </Avatar>
     </div>
-    <Avatar class="size-7 mx-2">
-      <router-link to="/account/profile">
-        <AvatarImage src="/src/assets/avatar.jpg"></AvatarImage>
-      </router-link>
-    </Avatar>
   </div>
 </template>
 
