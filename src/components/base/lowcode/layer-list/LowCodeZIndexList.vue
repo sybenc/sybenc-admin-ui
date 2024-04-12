@@ -5,7 +5,7 @@ import {toRef} from "vue";
 
 const store = useLowCodeStore()
 const {canvas, setCanvasCurrentSelected} = store
-const canvasCurrentSelected = toRef(store, 'canvasCurrentSelected')
+const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
 
 </script>
 

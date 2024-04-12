@@ -1,13 +1,19 @@
-import InputAnimation from "@/components/lowcode/tool-bar/form/input/InputAnimation.vue";
 import InputStyle from "@/components/lowcode/tool-bar/form/input/InputStyle.vue";
-import InputEvent from "@/components/lowcode/tool-bar/form/input/InputEvent.vue";
 import InputProps from "@/components/lowcode/tool-bar/form/input/InputProps.vue";
+import InputInteraction from "./input/InputInteraction.vue";
+import RadioProps from "@/components/lowcode/tool-bar/form/radio/RadioProps.vue";
+import RadioStyle from "@/components/lowcode/tool-bar/form/radio/RadioStyle.vue";
+import RadioInteraction from "@/components/lowcode/tool-bar/form/radio/RadioInteraction.vue";
 
-export const formLowCodeAttrList = {
+export const formLowCodeToolBarConfig = {
     Input: {
-        InputAnimation,
         InputStyle,
-        InputEvent,
         InputProps,
+        InputInteraction
+    },
+    Radio: {
+        RadioStyle,
+        RadioProps,
+        RadioInteraction
     }
 }

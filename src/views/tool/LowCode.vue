@@ -6,7 +6,6 @@ import {
   LowCodeComponentList
 } from "@/components/base/lowcode"
 import {LowCodeTool} from "@/components/base/lowcode";
-
 </script>
 
 <template>
@@ -14,8 +13,8 @@ import {LowCodeTool} from "@/components/base/lowcode";
     <LowCodeBar/>
     <div class="flex low-code-content">
       <div class="flex flex-col w-1/6 h-full low-code-component box-border">
-        <LowCodeComponentList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll scrollbar-hidden box-border"/>
-        <LowCodeZIndexList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll scrollbar-hidden box-border low-code-canvas-list"/>
+        <LowCodeComponentList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll box-border"/>
+        <LowCodeZIndexList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll box-border low-code-canvas-list"/>
       </div>
       <LowCodeCanvas class="flex flex-col w-4/6 gap-4 p-4"/>
       <LowCodeTool class="flex-1 w-1/6 low-code-style box-border"/>

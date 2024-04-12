@@ -1,6 +1,6 @@
 import {defineStore} from "pinia"
 import {reactive, ref, watch} from "vue";
-import {generateID, swap} from "@/lib/utils.ts";
+import {deepCopy, generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
 
@@ -26,8 +26,8 @@ interface LowCodeCommand {
 
 interface LowCodeHistoryOperation {
     command: LowCodeCommand,
-    canvasCurrentSelected: CommonComponentConfig | null,
-    oldCanvasCurrentSelected: CommonComponentConfig | null,
+    currentSelectedComponent: CommonComponentConfig | null,
+    oldSelectedComponent: CommonComponentConfig | null,
 }
 
 type ToolBarController = 'LowCodeToolCanvas' | 'LowCodeToolComponent'
@@ -40,11 +40,11 @@ export const useLowCodeStore = defineStore('low-code', () => {
     })
 
     //画布中此时此刻被选中的组件
-    const canvasCurrentSelected = ref<CommonComponentConfig | null>(null)
+    const currentSelectedComponent = ref<CommonComponentConfig | null>(null)
     //画布中上一个被选中的组件，用于撤销、重做操作还原状态
-    const oldCanvasCurrentSelected = ref<CommonComponentConfig | null>(null)
+    const oldSelectedComponent = ref<CommonComponentConfig | null>(null)
     const setCanvasCurrentSelected = (component: CommonComponentConfig) => {
-        canvasCurrentSelected.value = component
+        currentSelectedComponent.value = component
     }
     // 当前组名称
     const currentGroupName = ref<LowCodeGroupName>('form')
@@ -55,8 +55,8 @@ export const useLowCodeStore = defineStore('low-code', () => {
     // 控制工具栏显示
     const toolBarController = ref<ToolBarController>('LowCodeToolCanvas')
     // 监测canvasCurrentSelected的变化，决定工具栏应该显示什么内容
-    watch(canvasCurrentSelected, () => {
-        if (canvasCurrentSelected.value === null) {
+    watch(currentSelectedComponent, () => {
+        if (currentSelectedComponent.value === null) {
             if (toolBarController.value !== 'LowCodeToolCanvas')
                 toolBarController.value = 'LowCodeToolCanvas'
         } else {
@@ -108,8 +108,8 @@ export const useLowCodeStore = defineStore('low-code', () => {
         historyOperationIndex.value++
         historyOperation.push({
             command,
-            canvasCurrentSelected: canvasCurrentSelected.value,
-            oldCanvasCurrentSelected: oldCanvasCurrentSelected.value
+            currentSelectedComponent: currentSelectedComponent.value,
+            oldSelectedComponent: oldSelectedComponent.value
         })
     }
 
@@ -118,7 +118,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
         if (historyOperationIndex.value < 0) return
         const command = historyOperation[historyOperationIndex.value].command
         command.undo()
-        canvasCurrentSelected.value = historyOperation[historyOperationIndex.value].canvasCurrentSelected
+        currentSelectedComponent.value = historyOperation[historyOperationIndex.value].currentSelectedComponent
         historyOperationIndex.value--
     }
 
@@ -128,7 +128,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
         historyOperationIndex.value++
         const command = historyOperation[historyOperationIndex.value].command
         command.execute()
-        canvasCurrentSelected.value = historyOperation[historyOperationIndex.value].oldCanvasCurrentSelected
+        currentSelectedComponent.value = historyOperation[historyOperationIndex.value].oldSelectedComponent
     }
 
     /**
@@ -157,6 +157,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
             execute: () => {
                 //指定组件唯一ID
                 component.id = generateID()
+                console.log(component.id)
                 //置顶元素层级
                 component.layer = canvas.data.length
                 //添加元素到画布
@@ -318,10 +319,75 @@ export const useLowCodeStore = defineStore('low-code', () => {
         }
     }
 
+    //生成更改样式的命令，交与execute()函数处理
+    function createCommandChangeComponentStyle(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
+        const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
+        return {
+            component,
+            oldComponent,
+            index,
+            description: {
+                icon: 'mynaui:move',
+                label: '更改样式'
+            },
+            execute: () => {
+                canvas.data[index].style = component?.style
+            },
+            undo: () => {
+                canvas.data[index].style = oldComponent?.style
+            }
+        }
+    }
+
+    //生成更改属性的命令，交与execute()函数处理
+    function createCommandChangeComponentPropsValue(component: CommonComponentConfig, oldComponent?: CommonComponentConfig): LowCodeCommand {
+        const index = canvas.data.findIndex((item: CommonComponentConfig) => component.id === item.id)
+        return {
+            component,
+            oldComponent,
+            index,
+            description: {
+                icon: 'mynaui:move',
+                label: '更改属性'
+            },
+            execute: () => {
+                canvas.data[index].propsValue = component?.propsValue
+                console.log(canvas.data[index].propsValue,component?.propsValue)
+            },
+            undo: () => {
+                canvas.data[index].propsValue = oldComponent?.propsValue
+            }
+        }
+    }
+
+    const clipboard = ref<CommonComponentConfig | null>(null)
+
+    function copy(component: CommonComponentConfig | null) {
+        clipboard.value = component
+    }
+
+
+    function paste() {
+        if (!clipboard.value) return
+        //深拷贝
+        const component = deepCopy(clipboard.value)
+        //将元素位移一段距离防止元素重合
+        const top = parseInt(component?.style.top) + 10
+        const left = parseInt(component?.style.left) + 10
+        component.style.top = `${top}px`
+        component.style.left = `${left}px`
+        //将剪切板的值设置为当前元素的值，防止下一次粘贴元素重合
+        clipboard.value = component
+        //执行复制命令，同时将选中元素更改为当前粘贴的元素
+        oldSelectedComponent.value = currentSelectedComponent.value
+        execute(createCommandAddComponent, component)
+        currentSelectedComponent.value = component
+    }
+
     return {
         canvas,
-        canvasCurrentSelected,
-        oldCanvasCurrentSelected,
+        currentSelectedComponent,
+        oldSelectedComponent,
         scaleShow,
         currentGroupName,
         historyOperation,
@@ -345,6 +411,10 @@ export const useLowCodeStore = defineStore('low-code', () => {
         createCommandLockComponent,
         createCommandUnlockComponent,
         createCommandMoveComponent,
+        createCommandChangeComponentStyle,
+        createCommandChangeComponentPropsValue,
         recoverByHistory,
+        copy,
+        paste
     }
 })

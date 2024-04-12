@@ -1,52 +1,49 @@
 <script setup lang="ts">
-import {InputNumber} from "@/components/ui/input-number"
-import {Icon} from "@iconify/vue"
-import {ref} from "vue"
-
-const isLinkWH = ref<boolean>(false)
-const valueH = ref(100)
-const valueW = ref(100)
-
-function handleHInput(e: any) {
-  if (isLinkWH.value) {
-    valueW.value = e.target.value
-    valueH.value = e.target.value
-  }
-}
-
-function handleWInput(e: any) {
-  if (isLinkWH.value) {
-    valueH.value = e.target.value
-    valueW.value = e.target.value
-  }
-}
+import {useLowCodeStore} from "@/store/lowcode";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import {computed, toRef} from "vue";
+const store = useLowCodeStore()
+const {canvas} = store
+const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
+const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))
 </script>
 
 <template>
-  <div class="flex flex-col w-full gap-2 p-2">
-    <div class="grid grid-cols-2 gap-4">
-      <InputNumber :model-value="100" prefix="X" unit="px" click-select-all/>
-      <InputNumber :model-value="100" prefix="Y" unit="px" click-select-all/>
-    </div>
-    <div class="relative grid grid-cols-2 gap-4">
-      <InputNumber
-          v-model="valueW"
-          prefix="W"
-          unit="px"
-          @input="handleWInput($event)"
-          click-select-all/>
-      <Icon :icon="`fluent:lock-${isLinkWH?'closed':'open'}-28-filled`"
-            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 size-3.5"
-            @click.stop="isLinkWH = !isLinkWH"
-            :color="isLinkWH?'hsl(var(--primary))':'black'"/>
-      <InputNumber
-          v-model="valueH"
-          prefix="H"
-          unit="px"
-          @input="handleHInput($event)"
-          click-select-all/>
-    </div>
-  </div>
+  <Accordion type="single" collapsible>
+    <AccordionItem value="主要属性">
+      <AccordionTrigger class="hover:no-underline h-8 p-2 text-xs">主要样式</AccordionTrigger>
+      <AccordionContent>
+        <div class="grid w-full max-w-sm items-center gap-1.5 p-2">
+          <Label class="text-xs">ID</Label>
+          <Input v-model="canvas.data[index].propsValue.id" class="h-6 text-xs"/>
+        </div>
+        <div class="grid w-full max-w-sm items-center gap-1.5 p-2">
+          <Label class="text-xs">类型</Label>
+          <Input v-model="canvas.data[index].propsValue.type" class="h-6 text-xs"/>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="标签">
+      <AccordionTrigger class="hover:no-underline h-8 p-2 text-xs">标签样式</AccordionTrigger>
+      <AccordionContent>
+        <div class="grid w-full max-w-sm items-center gap-1.5 p-2">
+          <Label class="text-xs">输入框名称</Label>
+          <Input v-model="canvas.data[index].propsValue.label" class="h-6 text-xs"/>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+    <AccordionItem value="输入框">
+      <AccordionTrigger class="hover:no-underline h-8 p-2 text-xs">输入框样式</AccordionTrigger>
+      <AccordionContent>
+        <div class="grid w-full max-w-sm items-center gap-1.5 p-2">
+          <Label class="text-xs">输入提示</Label>
+          <Input v-model="canvas.data[index].propsValue.placeholder" class="h-6 text-xs"/>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
 </template>
 
 <style scoped lang="css">

@@ -10,9 +10,9 @@ const historyOperationShow = toRef(store, 'historyOperationShow')
 </script>
 
 <template>
-  <div class="grid grid-rows-2 w-full">
-    <component :is="lowCodeToolComponent[toolBarController]"></component>
-    <LowCodeToolHistory v-show="historyOperationShow" class="history"></LowCodeToolHistory>
+  <div class="flex flex-col w-full h-full">
+    <component :class="historyOperationShow?'h-1/2':'h-full'"  :is="lowCodeToolComponent[toolBarController]"></component>
+    <LowCodeToolHistory class="flex-1 history" v-show="historyOperationShow"></LowCodeToolHistory>
   </div>
 </template>
 

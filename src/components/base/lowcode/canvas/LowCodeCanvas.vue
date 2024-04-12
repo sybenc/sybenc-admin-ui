@@ -4,6 +4,8 @@ import {ref, toRef} from "vue";
 import LowCodeCanvasComponentShape from "@/components/base/lowcode/canvas/editor/LowCodeCanvasComponentShape.vue";
 import LowCodeCanvasScale from "@/components/base/lowcode/canvas/editor/LowCodeCanvasScale.vue";
 import {deepCopy} from "@/lib/utils.ts";
+import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
+import {Icon} from "@iconify/vue";
 
 const store = useLowCodeStore()
 const {
@@ -12,10 +14,12 @@ const {
   execute,
   getComponent,
   getComponentDefaultConfig,
-    createCommandMoveComponent,
+  createCommandMoveComponent,
+  copy,
+  paste
 } = store
-const canvasCurrentSelected = toRef(store, 'canvasCurrentSelected')
-const oldCanvasCurrentSelected = toRef(store, 'oldCanvasCurrentSelected')
+const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
+const oldCanvasCurrentSelected = toRef(store, 'oldSelectedComponent')
 const lowCodeCanvas = ref<HTMLElement | null>(null)
 
 const handleDrop = (e: any) => {
@@ -69,7 +73,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       //在鼠标抬起的时候记录操作，这时候传递的参数必须是深拷贝过的，否则无法正确执行撤销、重做操作
       //如果用户仅仅只是点击了组件，则不做操作
       const copyComponent = deepCopy(component)
-      if (!(oldComponent.style.left === component.style.left && oldComponent.style.top === component.style.top)){
+      if (!(oldComponent.style.left === component.style.left && oldComponent.style.top === component.style.top)) {
         execute(createCommandMoveComponent, copyComponent, oldComponent)
       }
       canvas.removeEventListener('mousemove', onMouseMove)
@@ -84,25 +88,35 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
 <template>
   <div class="relative bg-gray-100 overflow-scroll">
     <LowCodeCanvasScale :height="parseInt(canvas.height)" :width="parseInt(canvas.width)"/>
-    <div
-        ref="lowCodeCanvas"
-        :style="`height: ${canvas.height};width: ${canvas.width};`"
-        class="relative bg-white overflow-scroll"
-        @click.left.prevent.stop="canvasCurrentSelected = null"
-        @drop.prevent.stop="handleDrop($event)"
-        @dragover.prevent="handleDragOver($event)">
-      <template v-for="(item, _) in canvas.data" :key="item.id">
-        <LowCodeCanvasComponentShape
-            :component="item"
-            @mousedown.left.stop="handleMouseDown($event, item)">
-          <component
-              :is="getComponent(item.group, item.component)"
-              class="cursor-move"
-              :style="item.style"
-              :propsValue="item.propsValue"/>
-        </LowCodeCanvasComponentShape>
-      </template>
-    </div>
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <div
+            ref="lowCodeCanvas"
+            :style="`height: ${canvas.height};width: ${canvas.width};`"
+            class="relative bg-white overflow-scroll"
+            @click.left.prevent.stop="canvasCurrentSelected = null"
+            @drop.prevent.stop="handleDrop($event)"
+            @dragover.prevent="handleDragOver($event)">
+          <template v-for="(item, _) in canvas.data" :key="item.id">
+            <LowCodeCanvasComponentShape
+                :component="item"
+                @mousedown.left.stop="handleMouseDown($event, item)">
+              <component
+                  :is="getComponent(item.group, item.component)"
+                  class="cursor-move"
+                  :style="item.style"
+                  :propsValue="item.propsValue"/>
+            </LowCodeCanvasComponentShape>
+          </template>
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem @click.stop.prevent="paste()">
+          <Icon icon="fluent:clipboard-paste-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+          粘贴
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   </div>
 </template>
 
