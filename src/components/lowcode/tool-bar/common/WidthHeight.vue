@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import {Icon} from "@iconify/vue"
-import {computed, ref, toRef} from "vue"
+import {ref, toRef} from "vue"
 import {useLowCodeStore} from "@/store/lowcode";
 import {InputNumber} from "@/components/ui/input-number";
 const store = useLowCodeStore()
 const {canvas} = store
-const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
-const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))
+const index = toRef(store, 'currentSelectedComponentIndex')
 const props = defineProps({
   disabled: {type: Boolean, default: false}
 })

@@ -7,7 +7,7 @@ export const formCommonStyle = {
     width: '400px',
     height: '65px',
     //旋转角度
-    rotate: '0',
+    rotate: '0deg',
     //不透明度
     opacity: '1',
 }

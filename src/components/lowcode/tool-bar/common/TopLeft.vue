@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, toRef} from "vue"
+import {toRef} from "vue"
 import {useLowCodeStore} from "@/store/lowcode";
 import {InputNumber} from "@/components/ui/input-number";
 const props = defineProps({
@@ -9,8 +9,7 @@ const {disabled} = props
 
 const store = useLowCodeStore()
 const {canvas} = store
-const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
-const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))
+const index = toRef(store, 'currentSelectedComponentIndex')
 </script>
 
 <template>

@@ -22,7 +22,8 @@ const style = computed(() => {
   <div
       :class="cn(propsValue.display==='horizontal'? 'flex items-center':'flex flex-col'
         ,'flex')"
-      :style="style">
+      :style="style"
+      style="transform: rotate(0deg)">
     <template v-if="propsValue?.labelShow">
       <Label
           :for="propsValue?.id"

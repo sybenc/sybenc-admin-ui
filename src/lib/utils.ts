@@ -1,6 +1,6 @@
 import {type ClassValue, clsx} from 'clsx'
 import {twMerge} from 'tailwind-merge'
-import { nanoid } from 'nanoid'
+import {nanoid} from 'nanoid'
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
@@ -12,7 +12,14 @@ export function generateLowCodeStyle(style: LowCodeInputStyle | undefined): stri
     if (style) {
         for (const [key, value] of Object.entries(style)) {
             if (typeof value !== 'object') {
-                styleAttr += `${key}: ${value};`
+                switch (key) {
+                    case 'rotate':
+                        styleAttr += `transform: rotate(${value});`
+                        break
+                    default:
+                        styleAttr += `${key}: ${value};`
+                        break
+                }
             }
         }
     }

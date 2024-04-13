@@ -4,32 +4,6 @@ import {deepCopy, generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
 
-interface LowCodeCanvas {
-    data: CommonComponentConfig[],
-    width: string,
-    height: string
-}
-
-interface LowCodeCommand {
-    execute: () => void,
-    undo: () => void,
-    component: CommonComponentConfig,
-    oldComponent?: CommonComponentConfig,
-    index?: number,
-    top?: string,
-    left?: string,
-    description: {
-        icon: string,
-        label: string
-    }
-}
-
-interface LowCodeHistoryOperation {
-    command: LowCodeCommand,
-    currentSelectedComponent: CommonComponentConfig | null,
-    oldSelectedComponent: CommonComponentConfig | null,
-}
-
 type ToolBarController = 'LowCodeToolCanvas' | 'LowCodeToolComponent'
 export const useLowCodeStore = defineStore('low-code', () => {
     //存储画布中组件数据

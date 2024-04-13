@@ -20,7 +20,7 @@ const index = computed(() => canvas.data.findIndex((item) => item.id === current
   <align></align>
   <top-left class="px-2"/>
   <width-height class="px-2"/>
-  <string-input label="旋转角度" v-model="canvas.data[index].style.opacity" horizontal/>
+  <string-input label="旋转角度" v-model="canvas.data[index].style.rotate" horizontal/>
   <layout label="布局"></layout>
   <RangeSlider
       :min="0"
