@@ -23,20 +23,58 @@ const {component} = props
 
 const isActive = computed(() => canvasCurrentSelected.value?.id === component?.id)
 const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
-const selectComponent = (_: any) => {}
+//这个函数被用来阻止Shape组件向父组件冒泡，从而出现意料之外的后果
+const selectComponent = (_: any) => {
+}
+
+const pointsPositionName: string[] = ['tl', 't', 'tr', 'r', 'br', 'b', 'bl', 'l']
+const offset = 2.5
+const width = parseInt(canvasCurrentSelected.value?.style.width)
+const height = parseInt(canvasCurrentSelected.value?.style.height)
+const getPointsStyle = computed(() => {
+  const result: string[] = []
+  result.push(`cursor:nwse-resize;top:${-offset}px;left:${-offset}px;`)
+  result.push(`cursor:ns-resize;top:${-offset}px;left:${width / 2 - offset}px;`)
+  result.push(`cursor:nesw-resize;top:${-offset}px;left:${width - offset}px;`)
+  result.push(`cursor:ew-resize;top:${height / 2 - offset}px;left:${width - offset}px;`)
+  result.push(`cursor:nwse-resize;top:${height - offset}px;left:${width - offset}px;`)
+  result.push(`cursor:ns-resize;top:${height - offset}px;left:${width / 2 - offset}px;`)
+  result.push(`cursor:nesw-resize;top:${height - offset}px;left:${-offset}px;`)
+  result.push(`cursor:ew-resize;top:${height / 2 - offset}px;left:${-offset}px;`)
+  return result
+})
+const getRotateIconStyle = computed(()=>{
+  return `cursor:grab;top:-${30}px;left:${width / 2 - offset - 7}px;`
+})
 </script>
 
 <template>
   <div
-      class="absolute cursor-move"
+      class="absolute grid grid-cols-1 cursor-move"
       :style="generateLowCodeStyle(component.style)+`z-index:${component.layer};`"
       :class="isActive?'shape':''"
       @click.stop.prevent="selectComponent($event)">
-    <Icon
-        v-show="isActive&&component.lock"
-        icon="fluent:lock-closed-28-regular" class="absolute inset-0 size-4 mr-2" color="hsl(var(--primary))"/>
     <ContextMenu>
       <ContextMenuTrigger>
+        <div class="absolute inset-0 m-1 z-10">
+          <Icon
+              v-show="isActive && component.lock"
+              icon="fluent:lock-closed-28-regular"
+              class="size-5"
+              color="hsl(var(--primary))"/>
+        </div>
+        <div :style="getRotateIconStyle" class="absolute z-10">
+          <Icon
+              v-if="isActive && !component.lock"
+              icon="fluent:arrow-clockwise-20-filled"
+              class="size-5"
+              color="hsl(var(--primary))"/>
+        </div>
+        <template v-if="isActive && !component.lock">
+          <template v-for="(item, index) in getPointsStyle" :key="index">
+            <div :style="item" class="absolute pointer z-10"></div>
+          </template>
+        </template>
         <slot></slot>
       </ContextMenuTrigger>
       <ContextMenuContent>
@@ -78,6 +116,13 @@ const selectComponent = (_: any) => {}
 
 <style scoped lang="css">
 .shape {
-  outline: 2px solid hsl(var(--primary));
+  outline: 1px solid hsl(var(--primary));
+}
+
+.pointer {
+  width: 5px;
+  height: 5px;
+  background-color: white;
+  outline: 1px solid hsl(var(--primary));
 }
 </style>

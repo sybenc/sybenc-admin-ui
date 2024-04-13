@@ -1,6 +1,5 @@
 import {
-    geometryCommonStyle,
-    geometryCommonStyleMap
+    geometryCommonStyle
 } from "@/components/lowcode/config/geometry/common.ts";
 
 export const rectangleDefaultConfig: LowCodeRectangleComponent = {
@@ -18,7 +17,4 @@ export const rectangleDefaultConfig: LowCodeRectangleComponent = {
         border: '1px solid transparent ',
     },
     propsValue: {},
-}
-export const rectangleStyleMap = {
-    ...geometryCommonStyleMap,
 }

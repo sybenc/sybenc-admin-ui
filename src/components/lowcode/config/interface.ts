@@ -17,18 +17,16 @@ interface CommonComponentConfig {
 }
 
 interface CommonComponentStyle {
+    //位置
     top: string,
     left: string,
+    //长宽
     width: string,
     height: string,
-}
-
-interface Snapshot {
-    canvasData: CommonComponentConfig[],
-    canvasCurrentSelected: CommonComponentConfig | null,
-    currentGroupName: LowCodeGroupName,
-    scaleShow: boolean,
-    description: string,
+    //旋转角度
+    rotate: string,
+    //不透明度
+    opacity: string,
 }
 
 interface LowCodeGroupItem {

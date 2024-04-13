@@ -1,24 +1,23 @@
 <script setup lang="ts">
-// import {InputNumber} from "@/components/ui/input-number";
-// import {ref, toRef, watch} from "vue";
-// import {useLowCodeStore} from "@/store/lowcode";
-//
-// const store = useLowCodeStore()
-// const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
-// const props = defineProps({
-//   component: {type: Object as () => CommonComponentConfig}
-// })
-// const {component} = props
-// const top = ref(parseInt(currentSelectedComponent.value?.style.top))
-// const top = ref(parseInt(currentSelectedComponent.value?.style.top))
+import {computed, toRef} from "vue"
+import {useLowCodeStore} from "@/store/lowcode";
+import {InputNumber} from "@/components/ui/input-number";
+const props = defineProps({
+  disabled: {type: Boolean, default: false}
+})
+const {disabled} = props
 
+const store = useLowCodeStore()
+const {canvas} = store
+const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
+const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))
 </script>
 
 <template>
-<!--  <div class="grid grid-cols-2 gap-4">-->
-<!--    <InputNumber :model-value="top" prefix="X" suffix="px"/>-->
-<!--    <InputNumber :model-value="left" prefix="Y" suffix="px"/>-->
-<!--  </div>-->
+  <div class="relative grid grid-cols-2 gap-4 py-1">
+    <InputNumber v-model="canvas.data[index].style.top" prefix="X" :disabled="disabled"/>
+    <InputNumber v-model="canvas.data[index].style.left" prefix="Y" :disabled="disabled"/>
+  </div>
 </template>
 
 <style scoped lang="css">

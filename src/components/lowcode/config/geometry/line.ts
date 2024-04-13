@@ -1,6 +1,5 @@
 import {
-    geometryCommonStyle,
-    geometryCommonStyleMap
+    geometryCommonStyle
 } from "@/components/lowcode/config/geometry/common.ts";
 
 export const lineDefaultConfig: LowCodeLineComponent = {
@@ -19,7 +18,4 @@ export const lineDefaultConfig: LowCodeLineComponent = {
         'border-bottom': '3px solid black'
     },
     propsValue: {},
-}
-export const lineStyleMap = {
-    ...geometryCommonStyleMap,
 }

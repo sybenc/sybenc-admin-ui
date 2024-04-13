@@ -11,11 +11,14 @@ export function generateLowCodeStyle(style: LowCodeInputStyle | undefined): stri
     let styleAttr = ''
     if (style) {
         for (const [key, value] of Object.entries(style)) {
-            styleAttr += `${key}: ${value};`
+            if (typeof value !== 'object') {
+                styleAttr += `${key}: ${value};`
+            }
         }
     }
     return styleAttr
 }
+
 
 // 深拷贝
 export function deepCopy<T>(obj: T): T {
@@ -64,24 +67,20 @@ export function swap<T>(array: T[], index1: number, index2: number): void {
     array[index2] = temp
 }
 
-export function diff(oldObj: any, newObj: any): boolean {
-    // 检查新对象中新增的属性或者值不同的属性
-    for (const key in newObj) {
-        if (Object.prototype.hasOwnProperty.call(newObj, key)) {
-            if (!Object.prototype.hasOwnProperty.call(oldObj, key)) {
-                return false; // 新增的属性
-            } else if (oldObj[key] !== newObj[key]) {
-                return false; // 值不同的属性
-            }
-        }
-    }
+export function separateNumberAndUnit(input: string): [number | null, string | null] {
+    // 定义正则表达式匹配数字和单位
+    const regex = /^(\d*\.?\d+)\s*([a-zA-Z]+)$/;
 
-    // 检查旧对象中被删除的属性
-    for (const key in oldObj) {
-        if (Object.prototype.hasOwnProperty.call(oldObj, key) && !Object.prototype.hasOwnProperty.call(newObj, key)) {
-            return false; // 被删除的属性
-        }
-    }
+    // 匹配输入字符串
+    const match = input.match(regex);
 
-    return true; // 没有差异
+    if (match) {
+        // 如果匹配成功，则返回数字和单位的数组
+        const number = parseFloat(match[1]);
+        const unit = match[2];
+        return [number, unit];
+    } else {
+        // 如果没有匹配成功，则返回 null
+        return [null, null];
+    }
 }

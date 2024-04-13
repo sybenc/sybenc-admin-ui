@@ -15,7 +15,6 @@ const {
   getComponent,
   getComponentDefaultConfig,
   createCommandMoveComponent,
-  copy,
   paste
 } = store
 const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
@@ -30,8 +29,8 @@ const handleDrop = (e: any) => {
     //深拷贝，防止所有组件引用一个component
     const component: CommonComponentConfig = deepCopy(getComponentDefaultConfig(groupName, componentName))
     const canvasRect = canvas.getBoundingClientRect()
-    component.style.left = `${e.clientX - canvasRect.left}px`
-    component.style.top = `${e.clientY - canvasRect.top}px`
+    component.style.left = `${(e.clientX - canvasRect.left).toFixed(0)}px`
+    component.style.top = `${(e.clientY - canvasRect.top).toFixed(0)}px`
     oldCanvasCurrentSelected.value = component
     execute(createCommandAddComponent, component)
     canvasCurrentSelected.value = component

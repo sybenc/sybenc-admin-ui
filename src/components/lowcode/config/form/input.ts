@@ -1,4 +1,4 @@
-import {formCommonIcon, formCommonStyle, formCommonStyleMap} from "@/components/lowcode/config/form/common.ts";
+import {formCommonIcon, formCommonStyle} from "@/components/lowcode/config/form/common.ts";
 
 export const inputDefaultConfig: LowCodeInputComponent = {
     id: '',
@@ -12,16 +12,15 @@ export const inputDefaultConfig: LowCodeInputComponent = {
     events: {},
     style: {
         ...formCommonStyle,
+        gap: '10px',
     },
     propsValue: {
         id: 'id',
-        type: 'username',
+        type: 'email',
         label: '标签',
-        placeholder: '输入提示'
+        placeholder: '输入提示',
+        labelShow: true,
+        placeholderShow: true,
+        display: 'horizontal',
     },
-}
-
-export const inputStyleMap = {
-    ...formCommonStyleMap,
-
 }

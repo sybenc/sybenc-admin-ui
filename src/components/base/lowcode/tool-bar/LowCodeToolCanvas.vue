@@ -14,7 +14,6 @@ const {canvas} = store
         <TabsTrigger value="画布类型" class="rounded-none h-full text-xs data-[state=active]:shadow-none">画布类型</TabsTrigger>
       </TabsList>
       <TabsContent value="画布属性" class="p-2">
-        <WidthHeight disabled/>
       </TabsContent>
       <TabsContent value="画布类型">
         类型

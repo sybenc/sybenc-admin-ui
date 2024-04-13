@@ -89,5 +89,10 @@ module.exports = {
             },
         },
     },
-    plugins: [animate, require('./src/assets/tailwindcss/text.js'), require('tailwindcss-animated')],
+    plugins: [
+        animate,
+        require('./src/assets/tailwindcss/text.js'),
+        require('tailwindcss-animated'),
+        require("tailwindcss-animate")
+    ],
 }

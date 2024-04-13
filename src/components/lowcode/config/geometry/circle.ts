@@ -1,6 +1,5 @@
 import {
-    geometryCommonStyle,
-    geometryCommonStyleMap
+    geometryCommonStyle
 } from "@/components/lowcode/config/geometry/common.ts";
 
 export const circleDefaultConfig: LowCodeCircleComponent = {
@@ -19,7 +18,4 @@ export const circleDefaultConfig: LowCodeCircleComponent = {
         border: '1px solid transparent',
     },
     propsValue: {},
-}
-export const radioStyleMap = {
-    ...geometryCommonStyleMap,
 }

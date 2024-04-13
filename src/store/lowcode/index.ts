@@ -1,5 +1,5 @@
 import {defineStore} from "pinia"
-import {reactive, ref, watch} from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import {deepCopy, generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
@@ -41,6 +41,8 @@ export const useLowCodeStore = defineStore('low-code', () => {
 
     //画布中此时此刻被选中的组件
     const currentSelectedComponent = ref<CommonComponentConfig | null>(null)
+    //找到当前组件的索引，方便复用
+    const currentSelectedComponentIndex = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))
     //画布中上一个被选中的组件，用于撤销、重做操作还原状态
     const oldSelectedComponent = ref<CommonComponentConfig | null>(null)
     const setCanvasCurrentSelected = (component: CommonComponentConfig) => {
@@ -387,6 +389,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
     return {
         canvas,
         currentSelectedComponent,
+        currentSelectedComponentIndex,
         oldSelectedComponent,
         scaleShow,
         currentGroupName,

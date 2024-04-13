@@ -1,24 +1,39 @@
 <script setup lang="ts">
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
-import {generateLowCodeStyle} from "@/lib/utils.ts";
+import {cn, generateLowCodeStyle} from "@/lib/utils.ts";
 import {computed} from "vue";
 
 const props = defineProps({
-  style: Object as () => LowCodeInputStyle,
-  propsValue: Object as () => LowCodeInputPropsValue
+  style: {type: Object as () => LowCodeInputStyle, required: true},
+  propsValue: {type: Object as () => LowCodeInputPropsValue, required: true}
 })
 
 const {propsValue} = props
-const style = computed(() => generateLowCodeStyle(props.style))
+const style = computed(() => {
+  const reg = /^\d{1,3}(\.\d+)?%$/
+  if (reg.test(props.style?.width)) props.style.width = 'auto'
+  if (reg.test(props.style?.height)) props.style.height = 'auto'
+  return generateLowCodeStyle(props.style)
+})
 </script>
 
 <template>
-  <div class="flex items-center gap-1.5" :style="style">
-    <template v-if="propsValue?.label!==undefined">
-      <Label :for="propsValue?.id" class="flex w-1/12 justify-end mr-2">{{ propsValue?.label }}</Label>
+  <div
+      :class="cn(propsValue.display==='horizontal'? 'flex items-center':'flex flex-col'
+        ,'flex')"
+      :style="style">
+    <template v-if="propsValue?.labelShow">
+      <Label
+          :for="propsValue?.id"
+          :class="cn( propsValue.display==='horizontal'?'w-2/12 justify-end':'w-full justify-start'
+            ,'flex')">
+        {{ propsValue?.label }}
+      </Label>
     </template>
-    <Input :id="propsValue?.id" :type="propsValue?.type" :placeholder="propsValue?.placeholder"/>
+    <Input
+        :id="propsValue?.id" :type="propsValue?.type"
+        :placeholder="propsValue.placeholderShow?propsValue?.placeholder:''"/>
   </div>
 </template>
 
