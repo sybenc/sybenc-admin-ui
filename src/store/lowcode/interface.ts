@@ -29,6 +29,7 @@ type Orientation = 'vertical' | 'horizontal'
 interface LowCodeGuideLine {
     orientation: Orientation,
     position: number,
+    show: boolean,
 }
 interface LowCodeRuler {
     length: number,

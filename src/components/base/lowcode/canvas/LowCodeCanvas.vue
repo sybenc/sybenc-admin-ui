@@ -6,17 +6,18 @@ import {deepCopy} from "@/lib/utils.ts";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {Icon} from "@iconify/vue";
 import LowCodeCanvasRuler from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
+import LowCodeCanvasGuideLine from "@/components/base/lowcode/canvas/LowCodeCanvasGuideLine.vue";
 
 const store = useLowCodeStore()
 const {
   canvas,
-  ruler,
   createCommandAddComponent,
   execute,
   getComponent,
   getComponentDefaultConfig,
   createCommandMoveComponent,
-  paste
+  paste,
+    ruler
 } = store
 const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
 const oldCanvasCurrentSelected = toRef(store, 'oldSelectedComponent')
@@ -111,6 +112,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
               @click.left.prevent.stop="canvasCurrentSelected = null"
               @drop.prevent.stop="handleDrop($event)"
               @dragover.prevent="handleDragOver($event)">
+<!--            添加组件到画布-->
             <template v-for="(item, _) in canvas.data" :key="item.id">
               <LowCodeCanvasComponentShape
                   :component="item"

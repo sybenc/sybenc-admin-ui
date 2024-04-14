@@ -3,6 +3,10 @@ import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import WidthHeight from "@/components/lowcode/tool-bar/common/WidthHeight.vue";
 import {useLowCodeStore} from "@/store/lowcode";
 import RangeSlider from "@/components/lowcode/tool-bar/common/RangeSlider.vue";
+import BooleanSwitch from "@/components/lowcode/tool-bar/common/BooleanSwitch.vue";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import {Label} from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
 const store = useLowCodeStore()
 const {canvas} = store
 </script>
@@ -10,11 +14,10 @@ const {canvas} = store
 <template>
   <div class="flex flex-col gap-2 overflow-y-auto">
     <Tabs default-value="画布属性" class="w-full">
-      <TabsList class="grid grid-cols-3 rounded-none p-0 w-full">
+      <TabsList class="grid grid-cols-1 rounded-none p-0 w-full border-b">
         <TabsTrigger value="画布属性" class="rounded-none h-full text-xs data-[state=active]:shadow-none">画布属性</TabsTrigger>
-        <TabsTrigger value="画布类型" class="rounded-none h-full text-xs data-[state=active]:shadow-none">画布类型</TabsTrigger>
       </TabsList>
-      <TabsContent value="画布属性" class="p-2">
+      <TabsContent value="画布属性">
         <range-slider
             :step="1"
             :min="25"
@@ -22,9 +25,14 @@ const {canvas} = store
             :unit="'%'"
             label="缩放"
             v-model="store.ruler.scale"/>
-      </TabsContent>
-      <TabsContent value="画布类型">
-        类型
+        <Accordion type="multiple" collapsible>
+          <AccordionItem value="标尺">
+            <AccordionTrigger class="hover:no-underline h-8 p-2 text-xs">标尺</AccordionTrigger>
+            <AccordionContent>
+              <boolean-switch label="显示标尺" v-model="store.ruler.show"/>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </TabsContent>
     </Tabs>
   </div>

@@ -8,8 +8,8 @@ export const useLowCodeRulerStore = defineStore('low-code-ruler', () => {
         scale: '100%',
         scaleCenter: [0, 0],
         show: true,
-        guideLineV: [],
-        guideLineH: []
+        guideLineV: [{orientation: 'vertical', position: -10, show: false}],
+        guideLineH: [{orientation: 'horizontal', position: -10, show: false}]
     })
 
     function getScale(): number {
@@ -22,7 +22,7 @@ export const useLowCodeRulerStore = defineStore('low-code-ruler', () => {
     }
 
     function createGuideLine(orientation: Orientation, position: number) {
-        const line = {orientation, position}
+        const line = {orientation, position, show: true}
         if (orientation === 'vertical') {
             ruler.guideLineV.push(line)
         } else {
@@ -30,8 +30,8 @@ export const useLowCodeRulerStore = defineStore('low-code-ruler', () => {
         }
     }
 
-    function deleteGuideLine(line: LowCodeGuideLine, index: number) {
-        if (line.orientation === 'vertical') {
+    function deleteGuideLine(orientation: Orientation, index: number) {
+        if (orientation === 'vertical') {
             ruler.guideLineV.splice(index, 1)
         } else {
             ruler.guideLineH.splice(index, 1)
