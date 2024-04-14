@@ -3,6 +3,7 @@ import {computed, reactive, ref, watch} from "vue";
 import {deepCopy, generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
+import {useLowCodeRulerStore} from "@/store/lowcode/ruler.ts";
 
 type ToolBarController = 'LowCodeToolCanvas' | 'LowCodeToolComponent'
 export const useLowCodeStore = defineStore('low-code', () => {
@@ -24,8 +25,6 @@ export const useLowCodeStore = defineStore('low-code', () => {
     }
     // 当前组名称
     const currentGroupName = ref<LowCodeGroupName>('form')
-    // 是否显示量尺
-    const scaleShow = ref<boolean>(true)
     // 控制历史记录显示
     const historyOperationShow = ref<boolean>(false)
     // 控制工具栏显示
@@ -45,9 +44,6 @@ export const useLowCodeStore = defineStore('low-code', () => {
 
     const setCurrentGroupName = (name: LowCodeGroupName) => {
         currentGroupName.value = name
-    }
-    const setScaleShow = () => {
-        scaleShow.value = !scaleShow.value
     }
     // 得到当前组存储预设组件默认配置，这是用于预设组件列表的控制
     const getCurrentGroupDefaultConfigListByName = (name: LowCodeGroupName): {
@@ -328,7 +324,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
             },
             execute: () => {
                 canvas.data[index].propsValue = component?.propsValue
-                console.log(canvas.data[index].propsValue,component?.propsValue)
+                console.log(canvas.data[index].propsValue, component?.propsValue)
             },
             undo: () => {
                 canvas.data[index].propsValue = oldComponent?.propsValue
@@ -360,24 +356,31 @@ export const useLowCodeStore = defineStore('low-code', () => {
         currentSelectedComponent.value = component
     }
 
+    const rulerStore = useLowCodeRulerStore()
+    const {ruler, createGuideLine, deleteGuideLine, getScaleStyle, getScale} = rulerStore
     return {
         canvas,
         currentSelectedComponent,
         currentSelectedComponentIndex,
         oldSelectedComponent,
-        scaleShow,
         currentGroupName,
-        historyOperation,
         toolBarController,
-        historyOperationShow,
-        historyOperationIndex,
         getComponent,
         getComponentDefaultConfig,
         setCurrentGroupName,
         setCanvasCurrentSelected,
-        setScaleShow,
         getCurrentGroupDefaultConfigListByName,
 
+        ruler,
+        createGuideLine,
+        deleteGuideLine,
+        getScaleStyle,
+        getScale,
+
+
+        historyOperation,
+        historyOperationShow,
+        historyOperationIndex,
         execute,
         undo,
         redo,

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import {useLowCodeStore} from "@/store/lowcode";
 import {ref, toRef} from "vue";
-import LowCodeCanvasComponentShape from "@/components/base/lowcode/canvas/editor/LowCodeCanvasComponentShape.vue";
-import LowCodeCanvasScale from "@/components/base/lowcode/canvas/editor/LowCodeCanvasScale.vue";
+import LowCodeCanvasComponentShape from "@/components/base/lowcode/canvas/LowCodeCanvasComponentShape.vue";
 import {deepCopy} from "@/lib/utils.ts";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {Icon} from "@iconify/vue";
+import LowCodeCanvasRuler from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
 
 const store = useLowCodeStore()
 const {
   canvas,
+  ruler,
   createCommandAddComponent,
   execute,
   getComponent,
@@ -20,6 +21,8 @@ const {
 const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
 const oldCanvasCurrentSelected = toRef(store, 'oldSelectedComponent')
 const lowCodeCanvas = ref<HTMLElement | null>(null)
+const lowCodeCanvasContainer = ref<HTMLElement | null>(null)
+
 
 const handleDrop = (e: any) => {
   const componentName = e.dataTransfer.getData('component')
@@ -47,25 +50,34 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
   if (component.lock) return
   //保存旧的位置信息，以便撤销、重做操作
   const oldComponent = deepCopy(component)
-  const canvas = lowCodeCanvas.value
-  if (canvas) {
-    // 获取画布大小和视口信息
-    const canvasRect = canvas.getBoundingClientRect()
-    //获取鼠标在组件内部的偏移量
-    const offsetX = e.clientX - parseInt(component.style.left)
-    const offsetY = e.clientY - parseInt(component.style.top)
+  if (lowCodeCanvas.value) {
+    const scale = store.getScale()
+    const canvasRect = lowCodeCanvas.value.getBoundingClientRect()
+    //获取鼠标相对于画布的偏移量
+    let offsetX = e.clientX - canvasRect.left
+    let offsetY = e.clientY - canvasRect.top
     const onMouseMove = (mouseEvent: MouseEvent) => {
       if (component) {
-        let left = mouseEvent.clientX - offsetX
-        let top = mouseEvent.clientY - offsetY
-        // 获取组件的宽度和高度并转换为数值类型
-        const componentWidth = parseInt(component.style.width)
-        const componentHeight = parseInt(component.style.height)
+        //移动过程中鼠标相对于画布的偏移量
+        const moveOffsetX = mouseEvent.clientX - canvasRect.left
+        const moveOffsetY = mouseEvent.clientY - canvasRect.top
+        //计算两者差值并缩放，缩放是为了让元素在缩放情况下也能跟着鼠标移动
+        const diffX = (moveOffsetX - offsetX) / scale
+        const diffY = (moveOffsetY - offsetY) / scale
+        //计算原本坐标值和计算的到的偏移差值之和
+        let left = parseFloat(component.style.left) + diffX
+        let top = parseFloat(component.style.top) + diffY
+        // 获取组件的宽度和高度并转换为数值类型，用于判断元素是否超出画布边界
+        const componentWidth = parseFloat(component.style.width)
+        const componentHeight = parseFloat(component.style.height)
         // 确保组件在画布边界内移动
-        left = Math.max(0, Math.min(left, canvasRect.width - componentWidth))
-        top = Math.max(0, Math.min(top, canvasRect.height - componentHeight))
-        component.style.left = `${left}px`
-        component.style.top = `${top}px`
+        left = Math.max(0, Math.min(left, parseInt(canvas.width) - componentWidth))
+        top = Math.max(0, Math.min(top, parseInt(canvas.height) - componentHeight))
+        component.style.left = `${left.toFixed(1)}px`
+        component.style.top = `${top.toFixed(1)}px`
+        //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
+        offsetX = moveOffsetX
+        offsetY = moveOffsetY
       }
     }
     const onMouseUp = () => {
@@ -75,50 +87,53 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       if (!(oldComponent.style.left === component.style.left && oldComponent.style.top === component.style.top)) {
         execute(createCommandMoveComponent, copyComponent, oldComponent)
       }
-      canvas.removeEventListener('mousemove', onMouseMove)
-      canvas.removeEventListener('mouseup', onMouseUp)
+      lowCodeCanvas.value?.removeEventListener('mousemove', onMouseMove)
+      lowCodeCanvas.value?.removeEventListener('mouseup', onMouseUp)
     }
-    canvas.addEventListener('mousemove', onMouseMove)
-    canvas.addEventListener('mouseup', onMouseUp)
+    lowCodeCanvas.value.addEventListener('mousemove', onMouseMove)
+    lowCodeCanvas.value.addEventListener('mouseup', onMouseUp)
   }
 }
+
+
 </script>
 
 <template>
-  <div class="relative bg-gray-100 overflow-scroll">
-    <LowCodeCanvasScale :height="parseInt(canvas.height)" :width="parseInt(canvas.width)"/>
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <div
-            ref="lowCodeCanvas"
-            :style="`height: ${canvas.height};width: ${canvas.width};`"
-            class="relative bg-white overflow-scroll"
-            @click.left.prevent.stop="canvasCurrentSelected = null"
-            @drop.prevent.stop="handleDrop($event)"
-            @dragover.prevent="handleDragOver($event)">
-          <template v-for="(item, _) in canvas.data" :key="item.id">
-            <LowCodeCanvasComponentShape
-                :component="item"
-                @mousedown.left.stop="handleMouseDown($event, item)">
-              <component
-                  :is="getComponent(item.group, item.component)"
-                  class="cursor-move"
-                  :style="item.style"
-                  :propsValue="item.propsValue"/>
-            </LowCodeCanvasComponentShape>
-          </template>
-        </div>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem @click.stop.prevent="paste()">
-          <Icon icon="fluent:clipboard-paste-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          粘贴
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+  <div class="relative bg-gray-100 overflow-hidden">
+    <div ref="lowCodeCanvasContainer" class="relative overflow-scroll">
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <LowCodeCanvasRuler :height="5000" :width="5000"/>
+          <div
+              ref="lowCodeCanvas"
+              :style="`height: ${canvas.height};width: ${canvas.width};`+store.getScaleStyle()"
+              class="absolute inset-4 bg-white"
+              @click.left.prevent.stop="canvasCurrentSelected = null"
+              @drop.prevent.stop="handleDrop($event)"
+              @dragover.prevent="handleDragOver($event)">
+            <template v-for="(item, _) in canvas.data" :key="item.id">
+              <LowCodeCanvasComponentShape
+                  :component="item"
+                  @mousedown.left.stop="handleMouseDown($event, item)">
+                <component
+                    :is="getComponent(item.group, item.component)"
+                    class="cursor-move"
+                    :style="item.style"
+                    :propsValue="item.propsValue"/>
+              </LowCodeCanvasComponentShape>
+            </template>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem @click.stop.prevent="paste()">
+            <Icon icon="fluent:clipboard-paste-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            粘贴
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
   </div>
 </template>
 
 <style scoped lang="css">
-
 </style>

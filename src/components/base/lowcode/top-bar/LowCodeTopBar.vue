@@ -15,8 +15,7 @@ import {useLowCodeStore} from "@/store/lowcode";
 import {toRef} from "vue";
 
 const store = useLowCodeStore()
-const {setCurrentGroupName, setScaleShow, undo, redo} = store
-const scaleShow = toRef(store, 'scaleShow')
+const {setCurrentGroupName, undo, redo, ruler} = store
 const historyOperationShow = toRef(store, 'historyOperationShow')
 const group: LowCodeGroupItem[] = []
 for (const key in lowCodeGroupMap) {
@@ -50,8 +49,8 @@ const handleClickHistory = () => {
           </template>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button variant="ghost" size="icon" @click="setScaleShow()">
-        <Icon icon="mynaui:ruler" class="size-5" :color="scaleShow?'hsl(var(--primary))':'black'"/>
+      <Button variant="ghost" size="icon" @click="ruler.show = !ruler.show">
+        <Icon icon="mynaui:ruler" class="size-5" :color="ruler.show?'hsl(var(--primary))':'black'"/>
       </Button>
     </template>
 

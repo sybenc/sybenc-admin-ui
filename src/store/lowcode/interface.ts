@@ -24,3 +24,18 @@ interface LowCodeHistoryOperation {
     currentSelectedComponent: CommonComponentConfig | null,
     oldSelectedComponent: CommonComponentConfig | null,
 }
+
+type Orientation = 'vertical' | 'horizontal'
+interface LowCodeGuideLine {
+    orientation: Orientation,
+    position: number,
+}
+interface LowCodeRuler {
+    length: number,
+    width: number,
+    scale: string,
+    scaleCenter: number[],
+    show: boolean,
+    guideLineV: LowCodeGuideLine[]
+    guideLineH: LowCodeGuideLine[]
+}

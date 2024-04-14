@@ -16,7 +16,7 @@ import {LowCodeTool} from "@/components/base/lowcode";
         <LowCodeComponentList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll box-border"/>
         <LowCodeZIndexList class="flex flex-col gap-1 p-2 h-1/2 overflow-scroll box-border low-code-canvas-list"/>
       </div>
-      <LowCodeCanvas class="flex flex-col w-4/6 gap-4 p-4"/>
+      <LowCodeCanvas class="flex flex-col w-4/6 gap-4"/>
       <LowCodeTool class="flex-1 w-1/6 low-code-style box-border"/>
     </div>
   </div>

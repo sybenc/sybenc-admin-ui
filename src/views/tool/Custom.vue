@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import LowCodeCanvasScale from "@/components/base/lowcode/canvas/editor/LowCodeCanvasScale.vue";
+import LowCodeCanvasScale from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
 </script>
 
 <template>

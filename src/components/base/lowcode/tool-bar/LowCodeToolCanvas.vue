@@ -2,6 +2,7 @@
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import WidthHeight from "@/components/lowcode/tool-bar/common/WidthHeight.vue";
 import {useLowCodeStore} from "@/store/lowcode";
+import RangeSlider from "@/components/lowcode/tool-bar/common/RangeSlider.vue";
 const store = useLowCodeStore()
 const {canvas} = store
 </script>
@@ -14,6 +15,13 @@ const {canvas} = store
         <TabsTrigger value="画布类型" class="rounded-none h-full text-xs data-[state=active]:shadow-none">画布类型</TabsTrigger>
       </TabsList>
       <TabsContent value="画布属性" class="p-2">
+        <range-slider
+            :step="1"
+            :min="25"
+            :max="200"
+            :unit="'%'"
+            label="缩放"
+            v-model="store.ruler.scale"/>
       </TabsContent>
       <TabsContent value="画布类型">
         类型
