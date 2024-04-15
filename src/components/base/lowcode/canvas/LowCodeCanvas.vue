@@ -6,7 +6,6 @@ import {deepCopy} from "@/lib/utils.ts";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {Icon} from "@iconify/vue";
 import LowCodeCanvasRuler from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
-import LowCodeCanvasGuideLine from "@/components/base/lowcode/canvas/LowCodeCanvasGuideLine.vue";
 
 const store = useLowCodeStore()
 const {
@@ -23,7 +22,6 @@ const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
 const oldCanvasCurrentSelected = toRef(store, 'oldSelectedComponent')
 const lowCodeCanvas = ref<HTMLElement | null>(null)
 const lowCodeCanvasContainer = ref<HTMLElement | null>(null)
-
 
 const handleDrop = (e: any) => {
   const componentName = e.dataTransfer.getData('component')
@@ -72,8 +70,8 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
         const componentWidth = parseFloat(component.style.width)
         const componentHeight = parseFloat(component.style.height)
         // 确保组件在画布边界内移动
-        left = Math.max(0, Math.min(left, parseInt(canvas.width) - componentWidth))
-        top = Math.max(0, Math.min(top, parseInt(canvas.height) - componentHeight))
+        left = Math.max(0, Math.min(left, parseFloat(canvas.width) - componentWidth))
+        top = Math.max(0, Math.min(top, parseFloat(canvas.height) - componentHeight))
         component.style.left = `${left.toFixed(1)}px`
         component.style.top = `${top.toFixed(1)}px`
         //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
@@ -107,8 +105,11 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
           <LowCodeCanvasRuler :height="5000" :width="5000"/>
           <div
               ref="lowCodeCanvas"
-              :style="`height: ${canvas.height};width: ${canvas.width};`+store.getScaleStyle()"
-              class="absolute inset-4 bg-white"
+              :style="`height: ${canvas.height};
+                        width: ${canvas.width};
+                        top: ${ruler.width}px;
+                        left: ${ruler.width}px;`+store.getScaleStyle()"
+              class="absolute bg-white"
               @click.left.prevent.stop="canvasCurrentSelected = null"
               @drop.prevent.stop="handleDrop($event)"
               @dragover.prevent="handleDragOver($event)">

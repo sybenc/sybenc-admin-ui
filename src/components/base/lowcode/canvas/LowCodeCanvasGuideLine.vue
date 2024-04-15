@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {useLowCodeStore} from "@/store/lowcode";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import {Icon} from "@iconify/vue";
 import {cn} from "@/lib/utils.ts";
 
@@ -21,7 +21,7 @@ function getLineStyle(): string {
   const scale = store.getScale()
   if (orientation === 'vertical') {
     const guideLine = ruler.guideLineV[index]
-    result += `left:${index === 0 ? guideLine.position : guideLine.position * scale}px;
+    result += `left:${index === 0 ? guideLine.position : (guideLine.position - ruler.width) * scale + 16}px;
                   top:0;
                   width: 5px;
                   height:${store.canvas.height};
@@ -43,18 +43,15 @@ function getLineStyle(): string {
 
 function handleMouseDown(e: any) {
   if (lineContainer.value) {
-    console.log(ruler.guideLineV[index].position)
     const lineRect = lineContainer.value.getBoundingClientRect()
     let offsetX = e.clientX - lineRect.left
     let offsetY = e.clientY - lineRect.top
     const onMouseMove = (moveEvent: any) => {
       const moveOffsetX = moveEvent.clientX - lineRect.left
       const moveOffsetY = moveEvent.clientY - lineRect.top
-      console.log(orientation)
       if (orientation === 'vertical') {
         const diffX = moveOffsetX - offsetX
         ruler.guideLineV[index].position += diffX / store.getScale()
-        console.log(diffX, ruler.guideLineV[index].position)
       } else {
         const diffY = moveOffsetY - offsetY
         ruler.guideLineH[index].position += diffY / store.getScale()
@@ -72,6 +69,15 @@ function handleMouseDown(e: any) {
 }
 
 const deleteIconShow = ref<boolean>(false)
+const labelValue = computed(() => {
+  let result: number = orientation === 'vertical'
+      ? ruler.guideLineV[index].position - ruler.width
+      : ruler.guideLineH[index].position
+  if (index === 0) {
+    result /= store.getScale()
+  }
+  return result
+})
 </script>
 
 <template>
@@ -88,11 +94,7 @@ const deleteIconShow = ref<boolean>(false)
       <span class="text-primary"
             style="font-size: 10px;"
             :style="`writing-mode: ${orientation==='vertical'?'':'vertical-rl'};`">
-      {{
-          (orientation === 'vertical'
-              ? ruler.guideLineV[index].position
-              : ruler.guideLineH[index].position).toFixed(1)
-        }}
+      {{ labelValue.toFixed(0) }}
     </span>
       <Icon v-if="deleteIconShow&&index"
             icon="fluent:delete-28-filled"

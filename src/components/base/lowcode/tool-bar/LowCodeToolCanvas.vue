@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
-import WidthHeight from "@/components/lowcode/tool-bar/common/WidthHeight.vue";
 import {useLowCodeStore} from "@/store/lowcode";
 import RangeSlider from "@/components/lowcode/tool-bar/common/RangeSlider.vue";
 import BooleanSwitch from "@/components/lowcode/tool-bar/common/BooleanSwitch.vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
-import {Label} from "@/components/ui/label";
-import {Input} from "@/components/ui/input";
 const store = useLowCodeStore()
 const {canvas} = store
 </script>

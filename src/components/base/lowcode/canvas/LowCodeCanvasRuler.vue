@@ -8,7 +8,6 @@ const store = useLowCodeStore()
 const {
   ruler,
   createGuideLine,
-  deleteGuideLine
 } = store
 const scale = toRef(ruler, 'scale')
 const show = toRef(ruler, 'show')
@@ -170,15 +169,16 @@ function handleLeftRulerMouseEnter(e: any) {
 function handleTopRulerClick(e: any) {
   if (rulerLeftContainer.value) {
     const rulerLeftRect = rulerLeftContainer.value.getBoundingClientRect()
-    let offsetX = (e.clientX - rulerLeftRect.left)/store.getScale()
-    createGuideLine('vertical', offsetX)
+    let offsetX = (e.clientX - rulerLeftRect.left - ruler.width) / store.getScale()
+    console.log(offsetX)
+    createGuideLine('vertical', offsetX + ruler.width)
   }
 }
 
 function handleLeftRulerClick(e: any) {
   if (rulerTopContainer.value) {
     const rulerTopRect = rulerTopContainer.value.getBoundingClientRect()
-    let offsetY = (e.clientY - rulerTopRect.top - 16)/store.getScale()
+    let offsetY = (e.clientY - rulerTopRect.top - ruler.width) / store.getScale()
     createGuideLine('horizontal', offsetY)
   }
 }
@@ -202,10 +202,10 @@ watch(show, (value) => {
 
 <template>
   <div class="sticky top-0 h-4 z-10 bg-secondary"
-       :style="`width: ${width}px;height:16px;`">
+       :style="`width: ${width}px;height: ${ruler.width}px;`">
     <svg ref="rulerTopContainer"
          :width="width"
-         :height="16"
+         :height="ruler.width"
          class="absolute inset-0"
          style="z-index: 10001;"
          @mouseenter="handleTopRulerMouseEnter($event)"
@@ -215,9 +215,9 @@ watch(show, (value) => {
       <LowCodeCanvasGuideLine show :orientation="item.orientation" :index="index"/>
     </template>
   </div>
-  <div class="sticky left-0 w-4 z-10 bg-secondary" :style="`width: 16px;height:${height}px;`">
+  <div class="sticky left-0 w-4 z-10 bg-secondary" :style="`width: ${ruler.width}px;height:${height}px;`">
     <svg ref="rulerLeftContainer"
-         :width="16"
+         :width="ruler.width"
          :height="height"
          class="absolute inset-0"
          style="z-index: 10001;"
