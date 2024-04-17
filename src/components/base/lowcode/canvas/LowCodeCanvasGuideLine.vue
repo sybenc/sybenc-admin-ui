@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {computed, ref} from "vue";
 import {Icon} from "@iconify/vue";
 import {cn} from "@/lib/utils.ts";
@@ -12,7 +12,7 @@ const props = defineProps({
   index: {type: Number, required: true}
 })
 const {orientation, show, type, index} = props
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {ruler} = store
 const lineContainer = ref<HTMLElement | null>(null)
 
@@ -25,7 +25,7 @@ function getLineStyle(): string {
                   top:0;
                   width: 5px;
                   height:${store.canvas.height};
-                  border-left:1px ${type} red;
+                  border-left:1px ${type} hsl(var(--primary));
                   z-index: 10000;
                   cursor: ${index === 0 ? 'inherit' : 'col-resize'}`
   } else {
@@ -34,7 +34,7 @@ function getLineStyle(): string {
                   top:${index === 0 ? guideLine.position : guideLine.position * scale}px;
                   width:${store.canvas.width};
                   height: 5px;
-                  border-top:1px ${type} red;
+                  border-top:1px ${type} hsl(var(--primary));
                   z-index: 10000;
                   cursor: ${index === 0 ? 'inherit' : 'row-resize'}`
   }

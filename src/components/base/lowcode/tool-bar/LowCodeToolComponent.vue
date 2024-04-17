@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {lowCodeToolBarConfig} from "@/components/lowcode/tool-bar";
 import {computed} from "vue";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const name = computed(() => store.currentSelectedComponent?.component)
 const group = computed(() => store.currentSelectedComponent?.group)
 </script>

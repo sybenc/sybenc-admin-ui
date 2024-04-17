@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {Icon} from "@iconify/vue";
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {toRef} from "vue";
-import {deepCopy} from "@/lib/utils.ts";
+import {cloneDeep} from "lodash";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {
   canvas,
   createCommandChangeComponentStyle,
@@ -40,53 +40,53 @@ function getOffset(position: string): string {
 function handleAlignHLeft() {
   const offset = getOffset('HLeft')
   if (current.style.left === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.left = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 
 function handleAlignHCenter() {
   const offset = getOffset('HCenter')
   if (current.style.left === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.left = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 
 function handleAlignHRight() {
   const offset = getOffset('HRight')
   if (current.style.left === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.left = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 function handleAlignVTop() {
   const offset = getOffset('VTop')
   if (current.style.top === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.top = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 
 function handleAlignVCenter() {
   const offset = getOffset('VCenter')
   if (current.style.top === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.top = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 
 function handleAlignVBottom() {
   const offset = getOffset('VBottom')
   if (current.style.top === offset) return
-  const oldComponent = deepCopy(current)
+  const oldComponent = cloneDeep(current)
   current.style.top = offset
-  const component = deepCopy(current)
+  const component = cloneDeep(current)
   execute(createCommandChangeComponentStyle, component, oldComponent)
 }
 </script>

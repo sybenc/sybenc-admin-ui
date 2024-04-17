@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import {Icon} from "@iconify/vue";
 import {Label} from '@/components/ui/label'
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {toRef} from "vue";
 
 const props = defineProps({
   label: {type: String, required: true},
 })
 const {label} = props
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {canvas} = store
 const index = toRef(store, 'currentSelectedComponentIndex')
 

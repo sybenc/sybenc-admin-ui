@@ -9,7 +9,7 @@ export const useLowCodeRulerStore = defineStore('low-code-ruler', () => {
         scaleCenter: [0, 0],
         show: true,
         guideLineV: [{orientation: 'vertical', position: -10, show: false}],
-        guideLineH: [{orientation: 'horizontal', position: -10, show: false}]
+        guideLineH: [{orientation: 'horizontal', position: -10, show: false}],
     })
 
     function getScale(): number {
@@ -37,7 +37,6 @@ export const useLowCodeRulerStore = defineStore('low-code-ruler', () => {
             ruler.guideLineH.splice(index, 1)
         }
     }
-
     return {
         ruler,
         getScaleStyle,

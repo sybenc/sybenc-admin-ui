@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {toRef} from "vue";
 import {Icon} from "@iconify/vue";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {historyOperation, recoverByHistory} = store
 const historyOperationIndex = toRef(store, 'historyOperationIndex')
 

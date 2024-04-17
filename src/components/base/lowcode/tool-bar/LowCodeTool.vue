@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {toRef} from "vue";
 import {lowCodeToolComponent} from "@/components/base/lowcode/tool-bar/index.ts";
 import LowCodeToolHistory from "@/components/base/lowcode/tool-bar/LowCodeToolHistory.vue";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const toolBarController = toRef(store, 'toolBarController')
 const historyOperationShow = toRef(store, 'historyOperationShow')
 </script>

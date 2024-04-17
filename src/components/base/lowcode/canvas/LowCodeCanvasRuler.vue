@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import {onMounted, ref, toRef, watch} from 'vue';
 import * as d3 from 'd3';
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import LowCodeCanvasGuideLine from "@/components/base/lowcode/canvas/LowCodeCanvasGuideLine.vue";
+import {cn} from "@/lib/utils.ts";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {
   ruler,
   createGuideLine,
@@ -214,6 +215,12 @@ watch(show, (value) => {
     <template v-for="(item, index) in ruler.guideLineV" :key="index">
       <LowCodeCanvasGuideLine show :orientation="item.orientation" :index="index"/>
     </template>
+    <template v-if="store.currentComponentIsMoving">
+      <div :style="`left:${(parseFloat(store.currentSelectedComponent?.style.left))*store.getScale() + 16}px;
+                    width:${parseFloat(store.currentSelectedComponent?.style.width)*store.getScale()}px;
+                    height: 16px;`"
+           class="absolute bg-primary/25"/>
+    </template>
   </div>
   <div class="sticky left-0 w-4 z-10 bg-secondary" :style="`width: ${ruler.width}px;height:${height}px;`">
     <svg ref="rulerLeftContainer"
@@ -226,6 +233,12 @@ watch(show, (value) => {
     <!--            添加水平辅助线到画布-->
     <template v-for="(item, index) in ruler.guideLineH" :key="index">
       <LowCodeCanvasGuideLine show :orientation="item.orientation" :index="index"/>
+    </template>
+    <template v-if="store.currentComponentIsMoving">
+      <div :style="`top:${parseFloat(store.currentSelectedComponent?.style.top)*store.getScale()}px;
+                    height:${parseFloat(store.currentSelectedComponent?.style.height)*store.getScale()}px;
+                    width: 16px;`"
+           class="absolute bg-primary/25"/>
     </template>
   </div>
 </template>

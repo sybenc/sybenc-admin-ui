@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {Icon} from "@iconify/vue";
 import {toRef} from "vue";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {canvas, setCanvasCurrentSelected} = store
 const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
 

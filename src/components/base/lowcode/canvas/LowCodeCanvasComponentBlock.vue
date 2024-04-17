@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {deepCopy, generateLowCodeStyle} from "@/lib/utils.ts";
+import {generateLowCodeStyle} from "@/lib/utils.ts";
 import {computed, ref, toRef} from "vue";
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {Icon} from "@iconify/vue";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
+import {cloneDeep} from "lodash";
 
-const store = useLowCodeStore()
+const canvasStore = useLowCodeCanvasStore()
 const {
   createCommandDeleteComponent,
   createCommandLockComponent,
@@ -16,7 +17,7 @@ const {
   execute,
   copy,
   paste,
-} = store
+} = canvasStore
 const props = defineProps({
   component: {type: Object as () => CommonComponentConfig, required: true},
 })
@@ -25,7 +26,7 @@ const {component} = props
 //这个函数被用来阻止Shape组件向父组件冒泡，从而出现意料之外的后果
 const selectComponent = (_: any) => {
 }
-const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
+const currentSelectedComponent = toRef(canvasStore, 'currentSelectedComponent')
 const isActive = computed(() => currentSelectedComponent.value?.id === component.id)
 const positionList: string[] = ['tl', 't', 'tr', 'r', 'br', 'b', 'bl', 'l']
 const offset = 3
@@ -103,14 +104,13 @@ function getRotateStyle() {
 }
 
 function handleMouseDownOnPoint(point: any, position: string) {
-  const oldComponent = deepCopy(component)
+  const oldComponent = cloneDeep(component)
   const width = parseInt(component.style.width)
   const height = parseInt(component.style.height)
   const top = parseInt(component.style.top)
   const left = parseInt(component.style.left)
   const startX = point.clientX
   const startY = point.clientY
-
   const onMouseMove = (moveEvent: any) => {
     const currentX = moveEvent.clientX
     const currentY = moveEvent.clientY
@@ -129,7 +129,7 @@ function handleMouseDownOnPoint(point: any, position: string) {
   }
 
   const onMouseUp = () => {
-    const newComponent = deepCopy(component)
+    const newComponent = cloneDeep(component)
     if (newComponent && oldComponent) {
       execute(createCommandChangeComponentStyle, newComponent, oldComponent)
     }
@@ -141,7 +141,7 @@ function handleMouseDownOnPoint(point: any, position: string) {
 }
 
 function handleRotate(e: any) {
-  const oldComponent = deepCopy(component)
+  const oldComponent = cloneDeep(component)
   // 获取初始坐标和角度
   const startX = e.clientX
   const startY = e.clientY
@@ -161,7 +161,7 @@ function handleRotate(e: any) {
     component.style.rotate = (startRotate + rotateDegreeAfter - rotateDegreeBefore).toFixed(0) + 'deg'
   }
   const onMouseUp = () => {
-    const newComponent = deepCopy(component)
+    const newComponent = cloneDeep(component)
     if (newComponent && oldComponent) {
       execute(createCommandChangeComponentStyle, newComponent, oldComponent)
     }
@@ -172,79 +172,83 @@ function handleRotate(e: any) {
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
+
+
 </script>
 
 <template>
-  <div
-      ref="shapeContainer"
-      class="absolute grid grid-cols-1 cursor-move"
-      :style="generateLowCodeStyle(component.style)+`z-index:${component.layer};opacity:1;`"
-      :class="isActive?'shape':''"
-      @click.stop.prevent="selectComponent($event)">
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <div class="absolute inset-0 m-1 z-10">
-          <Icon
-              v-show="isActive && component.lock"
-              icon="fluent:lock-closed-28-regular"
-              class="size-5"
-              color="hsl(var(--primary))"/>
-        </div>
-        <div
-            class="absolute z-10"
-            :style="getRotateStyle()"
-            v-if="isActive && !component.lock"
-            @mousedown.stop.prevent="handleRotate($event)">
-          <Icon
-              icon="fluent:arrow-clockwise-20-filled"
-              class="size-5"
-              color="hsl(var(--primary))"/>
-        </div>
-        <template v-if="isActive && !component.lock">
-          <div
-              v-for="position in positionList"
-              :key="position"
-              class="point-shape"
-              :style="getPointStyle(position)"
-              @mousedown="handleMouseDownOnPoint($event, position)"/>
-        </template>
-        <slot></slot>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem v-show="!component.lock"
-                         @click.stop.prevent="execute(createCommandDeleteComponent, component)">
-          <Icon icon="fluent:delete-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          删除
-        </ContextMenuItem>
-        <ContextMenuItem v-show="!component.lock" @click.stop.prevent="copy(component)">
-          <Icon icon="mynaui:copy" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          复制
-        </ContextMenuItem>
-        <ContextMenuItem v-show="!component.lock" @click.stop.prevent="paste()">
-          <Icon icon="fluent:clipboard-paste-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          粘贴
-        </ContextMenuItem>
-        <ContextMenuItem v-show="!component.lock" @click.stop.prevent="execute(createCommandLockComponent, component)">
-          <Icon icon="fluent:lock-closed-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          锁定
-        </ContextMenuItem>
-        <ContextMenuItem v-show="component.lock" @click.stop.prevent="execute(createCommandUnlockComponent, component)">
-          <Icon icon="fluent:lock-open-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          解锁
-        </ContextMenuItem>
-        <ContextMenuItem v-show="!component.lock"
-                         @click.stop.prevent="execute(createCommandSetTopComponent, component)">
-          <Icon icon="mynaui:chevron-up-square" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          置顶
-        </ContextMenuItem>
-        <ContextMenuItem v-show="!component.lock"
-                         @click.stop.prevent="execute(createCommandSetBottomComponent, component)">
-          <Icon icon="mynaui:chevron-down-square" class="size-4 mr-2" color="hsl(var(--primary))"/>
-          置底
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
-  </div>
+    <div
+        ref="shapeContainer"
+        class="absolute grid grid-cols-1 cursor-move"
+        :style="generateLowCodeStyle(component.style)+`z-index:${component.layer};opacity:1;`"
+        :class="isActive?'shape':''"
+        @click.stop.prevent="selectComponent($event)">
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <div class="absolute inset-0 m-1 z-10">
+            <Icon
+                v-show="isActive && component.lock"
+                icon="fluent:lock-closed-28-regular"
+                class="size-5"
+                color="hsl(var(--primary))"/>
+          </div>
+          <template v-if="!canvasStore.currentComponentIsMoving">
+            <div
+                class="absolute z-10"
+                :style="getRotateStyle()"
+                v-if="isActive && !component.lock"
+                @mousedown.stop.prevent="handleRotate($event)">
+              <Icon
+                  icon="fluent:arrow-clockwise-20-filled"
+                  class="size-5"
+                  color="hsl(var(--primary))"/>
+            </div>
+            <template v-if="isActive && !component.lock">
+              <div
+                  v-for="position in positionList"
+                  :key="position"
+                  class="point-shape"
+                  :style="getPointStyle(position)"
+                  @mousedown="handleMouseDownOnPoint($event, position)"/>
+            </template>
+          </template>
+          <slot></slot>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem v-show="!component.lock"
+                           @click.stop.prevent="execute(createCommandDeleteComponent, component)">
+            <Icon icon="fluent:delete-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            删除
+          </ContextMenuItem>
+          <ContextMenuItem v-show="!component.lock" @click.stop.prevent="copy(component)">
+            <Icon icon="mynaui:copy" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            复制
+          </ContextMenuItem>
+          <ContextMenuItem v-show="!component.lock" @click.stop.prevent="paste()">
+            <Icon icon="fluent:clipboard-paste-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            粘贴
+          </ContextMenuItem>
+          <ContextMenuItem v-show="!component.lock" @click.stop.prevent="execute(createCommandLockComponent, component)">
+            <Icon icon="fluent:lock-closed-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            锁定
+          </ContextMenuItem>
+          <ContextMenuItem v-show="component.lock" @click.stop.prevent="execute(createCommandUnlockComponent, component)">
+            <Icon icon="fluent:lock-open-24-regular" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            解锁
+          </ContextMenuItem>
+          <ContextMenuItem v-show="!component.lock"
+                           @click.stop.prevent="execute(createCommandSetTopComponent, component)">
+            <Icon icon="mynaui:chevron-up-square" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            置顶
+          </ContextMenuItem>
+          <ContextMenuItem v-show="!component.lock"
+                           @click.stop.prevent="execute(createCommandSetBottomComponent, component)">
+            <Icon icon="mynaui:chevron-down-square" class="size-4 mr-2" color="hsl(var(--primary))"/>
+            置底
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
 </template>
 
 <style scoped lang="css">

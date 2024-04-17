@@ -1,4 +1,3 @@
-
 interface LowCodeCanvas {
     data: CommonComponentConfig[],
     width: string,
@@ -26,11 +25,13 @@ interface LowCodeHistoryOperation {
 }
 
 type Orientation = 'vertical' | 'horizontal'
+
 interface LowCodeGuideLine {
     orientation: Orientation,
     position: number,
     show: boolean,
 }
+
 interface LowCodeRuler {
     length: number,
     width: number,
@@ -40,3 +41,5 @@ interface LowCodeRuler {
     guideLineV: LowCodeGuideLine[]
     guideLineH: LowCodeGuideLine[]
 }
+
+type LineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'

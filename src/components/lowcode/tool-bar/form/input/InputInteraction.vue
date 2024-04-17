@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {computed, toRef} from "vue";
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {canvas} = store
 const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
 const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))

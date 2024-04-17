@@ -1,19 +1,21 @@
 import {defineStore} from "pinia"
 import {computed, reactive, ref, watch} from "vue";
-import {deepCopy, generateID, swap} from "@/lib/utils.ts";
+import {generateID, swap} from "@/lib/utils.ts";
 import {lowCodeDefaultConfig} from "@/components/lowcode/config";
 import {lowCodeComponentMap} from "@/components/lowcode/component";
 import {useLowCodeRulerStore} from "@/store/lowcode/ruler.ts";
+import {cloneDeep} from "lodash";
 
 type ToolBarController = 'LowCodeToolCanvas' | 'LowCodeToolComponent'
-export const useLowCodeStore = defineStore('low-code', () => {
+export const useLowCodeCanvasStore = defineStore('low-code-canvas', () => {
+
     //存储画布中组件数据
     const canvas = reactive<LowCodeCanvas>({
         data: [],
         width: '1200px',
         height: '1200px'
     })
-
+    const currentComponentIsMoving = ref<boolean>(false)
     //画布中此时此刻被选中的组件
     const currentSelectedComponent = ref<CommonComponentConfig | null>(null)
     //找到当前组件的索引，方便复用
@@ -137,7 +139,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
             },
             undo: () => {
                 if (canvas.data.length > 0) {
-                    //删除数组中最后一个元素即可
+                    //删除数组中最后一个元素
                     canvas.data.pop()
                 }
             }
@@ -156,9 +158,11 @@ export const useLowCodeStore = defineStore('low-code', () => {
                 label: '删除组件'
             },
             execute: () => {
+                currentSelectedComponent.value = null
                 canvas.data.splice(index, 1)
             },
             undo: () => {
+                currentSelectedComponent.value = component
                 canvas.data.splice(index, 0, component)
             }
         }
@@ -285,9 +289,9 @@ export const useLowCodeStore = defineStore('low-code', () => {
                 canvas.data[index].style.left = component?.style.left
             },
             undo: () => {
+                if (!oldComponent) return
                 canvas.data[index].style.top = oldComponent?.style.top
-                canvas.data[index].style.left = oldComponent?.style.left
-            }
+                canvas.data[index].style.left = oldComponent?.style.left}
         }
     }
 
@@ -324,7 +328,6 @@ export const useLowCodeStore = defineStore('low-code', () => {
             },
             execute: () => {
                 canvas.data[index].propsValue = component?.propsValue
-                console.log(canvas.data[index].propsValue, component?.propsValue)
             },
             undo: () => {
                 canvas.data[index].propsValue = oldComponent?.propsValue
@@ -342,7 +345,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
     function paste() {
         if (!clipboard.value) return
         //深拷贝
-        const component = deepCopy(clipboard.value)
+        const component = cloneDeep(clipboard.value)
         //将元素位移一段距离防止元素重合
         const top = parseInt(component?.style.top) + 10
         const left = parseInt(component?.style.left) + 10
@@ -360,6 +363,7 @@ export const useLowCodeStore = defineStore('low-code', () => {
     const {ruler, createGuideLine, deleteGuideLine, getScaleStyle, getScale} = rulerStore
     return {
         canvas,
+        currentComponentIsMoving,
         currentSelectedComponent,
         currentSelectedComponentIndex,
         oldSelectedComponent,

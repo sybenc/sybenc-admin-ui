@@ -27,33 +27,6 @@ export function generateLowCodeStyle(style: LowCodeInputStyle | undefined): stri
 }
 
 
-// 深拷贝
-export function deepCopy<T>(obj: T): T {
-    if (typeof obj !== 'object' || obj === null) {
-        // 如果是基本类型或 null，则直接返回
-        return obj;
-    }
-
-    // 如果是数组，则创建一个新数组并递归复制每个元素
-    if (Array.isArray(obj)) {
-        const newArray: any[] = [];
-        for (const item of obj) {
-            newArray.push(deepCopy(item));
-        }
-        return newArray as T;
-    }
-
-    // 如果是对象，则创建一个新对象并递归复制每个属性
-    const newObj: Record<string, any> = {};
-    for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            newObj[key] = deepCopy(obj[key]);
-        }
-    }
-    return newObj as T;
-}
-
-
 // 主要用于 Vue 的 diff 算法，为每个元素创建一个独一无二的 ID
 export function generateID() {
     return nanoid()

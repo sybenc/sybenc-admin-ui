@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {ref, toRef} from "vue";
-import LowCodeCanvasComponentShape from "@/components/base/lowcode/canvas/LowCodeCanvasComponentShape.vue";
-import {deepCopy} from "@/lib/utils.ts";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {Icon} from "@iconify/vue";
 import LowCodeCanvasRuler from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
+import {useLowCodeAdsorbStore} from "@/store/lowcode/adsorb.ts";
+import LowCodeCanvasComponentBlock from "@/components/base/lowcode/canvas/LowCodeCanvasComponentBlock.vue";
+import {cloneDeep} from "lodash";
 
-const store = useLowCodeStore()
+const canvasStore = useLowCodeCanvasStore()
 const {
   canvas,
   createCommandAddComponent,
@@ -16,10 +17,11 @@ const {
   getComponentDefaultConfig,
   createCommandMoveComponent,
   paste,
-    ruler
-} = store
-const canvasCurrentSelected = toRef(store, 'currentSelectedComponent')
-const oldCanvasCurrentSelected = toRef(store, 'oldSelectedComponent')
+  ruler
+} = canvasStore
+const adsorbStore = useLowCodeAdsorbStore()
+const canvasCurrentSelected = toRef(canvasStore, 'currentSelectedComponent')
+const oldCanvasCurrentSelected = toRef(canvasStore, 'oldSelectedComponent')
 const lowCodeCanvas = ref<HTMLElement | null>(null)
 const lowCodeCanvasContainer = ref<HTMLElement | null>(null)
 
@@ -29,7 +31,7 @@ const handleDrop = (e: any) => {
   const canvas = lowCodeCanvas.value
   if (componentName && groupName && canvas) {
     //深拷贝，防止所有组件引用一个component
-    const component: CommonComponentConfig = deepCopy(getComponentDefaultConfig(groupName, componentName))
+    const component: CommonComponentConfig = cloneDeep(getComponentDefaultConfig(groupName, componentName))
     const canvasRect = canvas.getBoundingClientRect()
     component.style.left = `${(e.clientX - canvasRect.left).toFixed(0)}px`
     component.style.top = `${(e.clientY - canvasRect.top).toFixed(0)}px`
@@ -48,14 +50,16 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
   //如果组件被锁定，直接结束
   if (component.lock) return
   //保存旧的位置信息，以便撤销、重做操作
-  const oldComponent = deepCopy(component)
+  const oldComponent = cloneDeep(component)
   if (lowCodeCanvas.value) {
-    const scale = store.getScale()
+    const scale = canvasStore.getScale()
     const canvasRect = lowCodeCanvas.value.getBoundingClientRect()
     //获取鼠标相对于画布的偏移量
     let offsetX = e.clientX - canvasRect.left
     let offsetY = e.clientY - canvasRect.top
     const onMouseMove = (mouseEvent: MouseEvent) => {
+      //设置组件正在移动
+      canvasStore.currentComponentIsMoving = true
       if (component) {
         //移动过程中鼠标相对于画布的偏移量
         const moveOffsetX = mouseEvent.clientX - canvasRect.left
@@ -66,14 +70,8 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
         //计算原本坐标值和计算的到的偏移差值之和
         let left = parseFloat(component.style.left) + diffX
         let top = parseFloat(component.style.top) + diffY
-        // 获取组件的宽度和高度并转换为数值类型，用于判断元素是否超出画布边界
-        const componentWidth = parseFloat(component.style.width)
-        const componentHeight = parseFloat(component.style.height)
-        // 确保组件在画布边界内移动
-        left = Math.max(0, Math.min(left, parseFloat(canvas.width) - componentWidth))
-        top = Math.max(0, Math.min(top, parseFloat(canvas.height) - componentHeight))
-        component.style.left = `${left.toFixed(1)}px`
-        component.style.top = `${top.toFixed(1)}px`
+        component.style.left = `${left.toFixed(2)}px`
+        component.style.top = `${top.toFixed(2)}px`
         //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
         offsetX = moveOffsetX
         offsetY = moveOffsetY
@@ -82,10 +80,12 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
     const onMouseUp = () => {
       //在鼠标抬起的时候记录操作，这时候传递的参数必须是深拷贝过的，否则无法正确执行撤销、重做操作
       //如果用户仅仅只是点击了组件，则不做操作
-      const copyComponent = deepCopy(component)
+      const copyComponent = cloneDeep(component)
       if (!(oldComponent.style.left === component.style.left && oldComponent.style.top === component.style.top)) {
         execute(createCommandMoveComponent, copyComponent, oldComponent)
       }
+      //设置组件停止移动
+      canvasStore.currentComponentIsMoving = false
       lowCodeCanvas.value?.removeEventListener('mousemove', onMouseMove)
       lowCodeCanvas.value?.removeEventListener('mouseup', onMouseUp)
     }
@@ -108,14 +108,14 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
               :style="`height: ${canvas.height};
                         width: ${canvas.width};
                         top: ${ruler.width}px;
-                        left: ${ruler.width}px;`+store.getScaleStyle()"
+                        left: ${ruler.width}px;`+canvasStore.getScaleStyle()"
               class="absolute bg-white"
               @click.left.prevent.stop="canvasCurrentSelected = null"
               @drop.prevent.stop="handleDrop($event)"
               @dragover.prevent="handleDragOver($event)">
-<!--            添加组件到画布-->
+            <!--            添加组件到画布-->
             <template v-for="(item, _) in canvas.data" :key="item.id">
-              <LowCodeCanvasComponentShape
+              <LowCodeCanvasComponentBlock
                   :component="item"
                   @mousedown.left.stop="handleMouseDown($event, item)">
                 <component
@@ -123,7 +123,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
                     class="cursor-move"
                     :style="item.style"
                     :propsValue="item.propsValue"/>
-              </LowCodeCanvasComponentShape>
+              </LowCodeCanvasComponentBlock>
             </template>
           </div>
         </ContextMenuTrigger>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {Icon} from "@iconify/vue";
 import {ref, toRef, watch} from 'vue';
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {getCurrentGroupDefaultConfigListByName} = store
 const currentGroupName = toRef(store, 'currentGroupName')
 

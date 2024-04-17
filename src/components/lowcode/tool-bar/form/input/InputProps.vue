@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {computed, toRef} from "vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion'
 import StringInput from "@/components/lowcode/tool-bar/common/StringInput.vue";
@@ -7,7 +7,7 @@ import BooleanSwitch from "@/components/lowcode/tool-bar/common/BooleanSwitch.vu
 import ArraySelect from "@/components/lowcode/tool-bar/common/ArraySelect.vue";
 
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {canvas} = store
 const currentSelectedComponent = toRef(store, 'currentSelectedComponent')
 const index = computed(() => canvas.data.findIndex((item) => item.id === currentSelectedComponent.value?.id))

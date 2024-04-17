@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {Icon} from "@iconify/vue";
 import {lowCodeGroupMap} from "@/components/lowcode/component"
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {toRef} from "vue";
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {setCurrentGroupName, undo, redo, ruler} = store
 const historyOperationShow = toRef(store, 'historyOperationShow')
 const group: LowCodeGroupItem[] = []

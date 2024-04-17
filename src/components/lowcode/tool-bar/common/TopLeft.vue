@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {toRef} from "vue"
-import {useLowCodeStore} from "@/store/lowcode";
+import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {InputNumber} from "@/components/ui/input-number";
 const props = defineProps({
   disabled: {type: Boolean, default: false}
 })
 const {disabled} = props
 
-const store = useLowCodeStore()
+const store = useLowCodeCanvasStore()
 const {canvas} = store
 const index = toRef(store, 'currentSelectedComponentIndex')
 </script>
