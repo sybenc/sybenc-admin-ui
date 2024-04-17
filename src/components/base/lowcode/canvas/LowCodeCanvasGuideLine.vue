@@ -98,7 +98,7 @@ const labelValue = computed(() => {
     </span>
       <Icon v-if="deleteIconShow&&index"
             icon="fluent:delete-28-filled"
-            class="text-primary size-3.5"
+            class="text-primary size-3.5 cursor-pointer"
             @click="store.deleteGuideLine(orientation, index)"/>
     </div>
   </div>
