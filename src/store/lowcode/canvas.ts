@@ -13,7 +13,7 @@ export const useLowCodeCanvasStore = defineStore('low-code-canvas', () => {
     const canvas = reactive<LowCodeCanvas>({
         data: [],
         width: '1200px',
-        height: '1200px'
+        height: '800px'
     })
     const currentComponentIsMoving = ref<boolean>(false)
     //画布中此时此刻被选中的组件

@@ -43,3 +43,13 @@ interface LowCodeRuler {
 }
 
 type LineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'
+
+interface Line {
+    type: LineType
+    orientation: Orientation
+    top?: string
+    left?: string
+    show: boolean
+}
+
+type AlignmentLine = { [key in LineType]: Line }

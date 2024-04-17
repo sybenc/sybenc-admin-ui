@@ -4,9 +4,10 @@ import {ref, toRef} from "vue";
 import {ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger} from "@/components/ui/context-menu";
 import {Icon} from "@iconify/vue";
 import LowCodeCanvasRuler from "@/components/base/lowcode/canvas/LowCodeCanvasRuler.vue";
-import {useLowCodeAdsorbStore} from "@/store/lowcode/adsorb.ts";
 import LowCodeCanvasComponentBlock from "@/components/base/lowcode/canvas/LowCodeCanvasComponentBlock.vue";
 import {cloneDeep} from "lodash";
+import {useLowCodeAdsorbStore} from "@/store/lowcode/adsorb.ts";
+import LowCodeCanvasAdsorb from "@/components/base/lowcode/canvas/LowCodeCanvasAdsorb.vue";
 
 const canvasStore = useLowCodeCanvasStore()
 const {
@@ -72,6 +73,8 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
         let top = parseFloat(component.style.top) + diffY
         component.style.left = `${left.toFixed(2)}px`
         component.style.top = `${top.toFixed(2)}px`
+        //寻找对齐线
+        if (component.style.rotate === '0deg') adsorbStore.checkAdsorbCondition(component)
         //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
         offsetX = moveOffsetX
         offsetY = moveOffsetY
@@ -86,6 +89,8 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       }
       //设置组件停止移动
       canvasStore.currentComponentIsMoving = false
+      //隐藏对齐线的显示
+      adsorbStore.clearStatus()
       lowCodeCanvas.value?.removeEventListener('mousemove', onMouseMove)
       lowCodeCanvas.value?.removeEventListener('mouseup', onMouseUp)
     }
@@ -93,8 +98,6 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
     lowCodeCanvas.value.addEventListener('mouseup', onMouseUp)
   }
 }
-
-
 </script>
 
 <template>
@@ -103,16 +106,19 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       <ContextMenu>
         <ContextMenuTrigger>
           <LowCodeCanvasRuler :height="5000" :width="5000"/>
-          <div
-              ref="lowCodeCanvas"
-              :style="`height: ${canvas.height};
+          <div ref="lowCodeCanvas"
+               :style="`height: ${canvas.height};
                         width: ${canvas.width};
                         top: ${ruler.width}px;
                         left: ${ruler.width}px;`+canvasStore.getScaleStyle()"
-              class="absolute bg-white"
-              @click.left.prevent.stop="canvasCurrentSelected = null"
-              @drop.prevent.stop="handleDrop($event)"
-              @dragover.prevent="handleDragOver($event)">
+               class="absolute bg-white"
+               @click.left.prevent.stop="canvasCurrentSelected = null"
+               @drop.prevent.stop="handleDrop($event)"
+               @dragover.prevent="handleDragOver($event)">
+
+            <!--            吸附组件-->
+            <LowCodeCanvasAdsorb/>
+
             <!--            添加组件到画布-->
             <template v-for="(item, _) in canvas.data" :key="item.id">
               <LowCodeCanvasComponentBlock
