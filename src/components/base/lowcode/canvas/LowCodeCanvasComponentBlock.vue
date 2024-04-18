@@ -116,8 +116,8 @@ function handleMouseDownOnPoint(point: any, position: string) {
   const onMouseMove = (moveEvent: any) => {
     const currentX = moveEvent.clientX
     const currentY = moveEvent.clientY
-    const disX = currentX - startX
-    const disY = currentY - startY
+    const disX = (currentX - startX) / canvasStore.getScale()
+    const disY = (currentY - startY) / canvasStore.getScale()
     const hasT = /t/.test(position)
     const hasB = /b/.test(position)
     const hasL = /l/.test(position)
@@ -128,7 +128,7 @@ function handleMouseDownOnPoint(point: any, position: string) {
     component.style.width = `${newWidth > 0 ? newWidth : 0}px`
     component.style.left = `${left + (hasL ? disX : 0)}px`
     component.style.top = `${top + (hasT ? disY : 0)}px`
-    adsorbStore.checkAdsorbCondition(component)
+    adsorbStore.checkAlignmentAdsorbCondition(component)
   }
 
   const onMouseUp = () => {
@@ -210,7 +210,7 @@ function handleRotate(e: any) {
                 :key="position"
                 class="point-shape"
                 :style="getPointStyle(position)"
-                @mousedown="handleMouseDownOnPoint($event, position)"/>
+                @mousedown.stop.prevent="handleMouseDownOnPoint($event, position)"/>
           </template>
         </template>
         <slot></slot>

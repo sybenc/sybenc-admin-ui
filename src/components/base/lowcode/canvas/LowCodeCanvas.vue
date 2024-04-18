@@ -74,7 +74,10 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
         component.style.left = `${left.toFixed(2)}px`
         component.style.top = `${top.toFixed(2)}px`
         //寻找对齐线
-        if (component.style.rotate === '0deg') adsorbStore.checkAdsorbCondition(component)
+        if (component.style.rotate === '0deg' || component.style.rotate === '-0deg') {
+          adsorbStore.checkAlignmentAdsorbCondition(component)
+          adsorbStore.checkGuideLineAdsorbCondition(component)
+        }
         //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
         offsetX = moveOffsetX
         offsetY = moveOffsetY

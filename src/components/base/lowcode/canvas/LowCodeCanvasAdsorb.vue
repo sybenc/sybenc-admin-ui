@@ -28,6 +28,8 @@ const lineType: LineType[] = ['vl', 'vc', 'vr', 'ht', 'hc', 'hb']
                             top: ${adsorbStore.alignmentLines[value].top};`"/>
     </template>
   </template>
+  <!--  两条距离线-->
+  <div class="absolute bg-yellow-400" :style="`top:${canvasStore.currentSelectedComponent?.style.top}`"></div>
 </template>
 
 <style scoped lang="css">

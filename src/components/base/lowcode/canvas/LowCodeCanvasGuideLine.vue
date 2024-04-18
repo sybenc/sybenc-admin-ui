@@ -12,19 +12,19 @@ const props = defineProps({
   index: {type: Number, required: true}
 })
 const {orientation, show, type, index} = props
-const store = useLowCodeCanvasStore()
-const {ruler} = store
+const canvasStore = useLowCodeCanvasStore()
+const {ruler} = canvasStore
 const lineContainer = ref<HTMLElement | null>(null)
 
 function getLineStyle(): string {
   let result: string = ''
-  const scale = store.getScale()
+  const scale = canvasStore.getScale()
   if (orientation === 'vertical') {
     const guideLine = ruler.guideLineV[index]
     result += `left:${index === 0 ? guideLine.position : (guideLine.position - ruler.width) * scale + 16}px;
                   top:0;
                   width: 5px;
-                  height:${store.canvas.height};
+                  height:${canvasStore.canvas.height};
                   border-left:1px ${type} hsl(var(--primary));
                   z-index: 10000;
                   cursor: ${index === 0 ? 'inherit' : 'col-resize'}`
@@ -32,7 +32,7 @@ function getLineStyle(): string {
     const guideLine = ruler.guideLineH[index]
     result += `left:0;
                   top:${index === 0 ? guideLine.position : guideLine.position * scale}px;
-                  width:${store.canvas.width};
+                  width:${canvasStore.canvas.width};
                   height: 5px;
                   border-top:1px ${type} hsl(var(--primary));
                   z-index: 10000;
@@ -51,10 +51,18 @@ function handleMouseDown(e: any) {
       const moveOffsetY = moveEvent.clientY - lineRect.top
       if (orientation === 'vertical') {
         const diffX = moveOffsetX - offsetX
-        ruler.guideLineV[index].position += diffX / store.getScale()
+        ruler.guideLineV[index].position += diffX / canvasStore.getScale()
+        if (ruler.guideLineV[index].position > parseFloat(canvasStore.canvas.width)
+            || ruler.guideLineV[index].position < 16) {
+          canvasStore.deleteGuideLine('vertical', index)
+        }
       } else {
         const diffY = moveOffsetY - offsetY
-        ruler.guideLineH[index].position += diffY / store.getScale()
+        ruler.guideLineH[index].position += diffY / canvasStore.getScale()
+        if (ruler.guideLineH[index].position > parseFloat(canvasStore.canvas.height)
+            || ruler.guideLineH[index].position < 0) {
+          canvasStore.deleteGuideLine('horizontal', index)
+        }
       }
       offsetX = moveOffsetX
       offsetY = moveOffsetY
@@ -74,7 +82,7 @@ const labelValue = computed(() => {
       ? ruler.guideLineV[index].position - ruler.width
       : ruler.guideLineH[index].position
   if (index === 0) {
-    result /= store.getScale()
+    result /= canvasStore.getScale()
   }
   return result
 })
@@ -99,7 +107,7 @@ const labelValue = computed(() => {
       <Icon v-if="deleteIconShow&&index"
             icon="fluent:delete-28-filled"
             class="text-primary size-3.5 cursor-pointer"
-            @click="store.deleteGuideLine(orientation, index)"/>
+            @click="canvasStore.deleteGuideLine(orientation, index)"/>
     </div>
   </div>
 </template>

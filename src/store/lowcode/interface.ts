@@ -32,15 +32,6 @@ interface LowCodeGuideLine {
     show: boolean,
 }
 
-interface LowCodeRuler {
-    length: number,
-    width: number,
-    scale: string,
-    scaleCenter: number[],
-    show: boolean,
-    guideLineV: LowCodeGuideLine[]
-    guideLineH: LowCodeGuideLine[]
-}
 
 type LineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'
 

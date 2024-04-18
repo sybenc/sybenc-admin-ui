@@ -9,7 +9,7 @@ const {label} = props
 </script>
 
 <template>
-  <div class="flex justify-between items-center px-2">
+  <div class="flex justify-between items-center px-2 py-1">
     <Label class="justify-start text-xs">{{label}}</Label>
     <Switch v-model:checked="model"/>
   </div>

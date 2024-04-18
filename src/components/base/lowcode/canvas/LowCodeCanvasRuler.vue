@@ -3,13 +3,12 @@ import {onMounted, ref, toRef, watch} from 'vue';
 import * as d3 from 'd3';
 import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import LowCodeCanvasGuideLine from "@/components/base/lowcode/canvas/LowCodeCanvasGuideLine.vue";
-import {cn} from "@/lib/utils.ts";
 
-const store = useLowCodeCanvasStore()
+const canvasStore = useLowCodeCanvasStore()
 const {
   ruler,
   createGuideLine,
-} = store
+} = canvasStore
 const scale = toRef(ruler, 'scale')
 const show = toRef(ruler, 'show')
 const rulerTopContainer = ref<SVGSVGElement | null>(null);
@@ -32,7 +31,7 @@ function getMarkData(max: number, gap: number): number[] {
 }
 
 function drawTopRuler(svg: any, max: number, data: number[], tickSize: number, textShow: boolean) {
-  const scale = store.getScale()
+  const scale = canvasStore.getScale()
   // 定义X比例尺
   const xScale = d3.scaleLinear()
       .domain([0, max])
@@ -59,7 +58,7 @@ function drawTopRuler(svg: any, max: number, data: number[], tickSize: number, t
 }
 
 function drawLeftRuler(svg: any, max: number, data: number[], tickSize: number, textShow: boolean) {
-  const scale = store.getScale()
+  const scale = canvasStore.getScale()
   // 定义 Y 比例尺
   const yScale = d3.scaleLinear()
       .domain([0, max])
@@ -167,21 +166,16 @@ function handleLeftRulerMouseEnter(e: any) {
   }
 }
 
-function handleTopRulerClick(e: any) {
-  if (rulerLeftContainer.value) {
-    const rulerLeftRect = rulerLeftContainer.value.getBoundingClientRect()
-    let offsetX = (e.clientX - rulerLeftRect.left - ruler.width) / store.getScale()
-    console.log(offsetX)
-    createGuideLine('vertical', offsetX + ruler.width)
-  }
+function handleTopRulerClick() {
+  if (ruler.guideLineV[0].position > parseFloat(canvasStore.canvas.width) + 16
+      || ruler.guideLineV[0].position < 0) return
+  createGuideLine('vertical', ruler.guideLineV[0].position)
 }
 
-function handleLeftRulerClick(e: any) {
-  if (rulerTopContainer.value) {
-    const rulerTopRect = rulerTopContainer.value.getBoundingClientRect()
-    let offsetY = (e.clientY - rulerTopRect.top - ruler.width) / store.getScale()
-    createGuideLine('horizontal', offsetY)
-  }
+function handleLeftRulerClick() {
+  if (ruler.guideLineH[0].position > parseFloat(canvasStore.canvas.height)
+      || ruler.guideLineH[0].position < 0) return
+  createGuideLine('horizontal', ruler.guideLineH[0].position)
 }
 
 watch(scale, (value, oldValue) => {
@@ -197,7 +191,6 @@ watch(show, (value) => {
   if (value) {
     drawRuler(parseInt(scale.value))
   }
-
 })
 </script>
 
@@ -210,16 +203,17 @@ watch(show, (value) => {
          class="absolute inset-0"
          style="z-index: 10001;"
          @mouseenter="handleTopRulerMouseEnter($event)"
-         @click="handleTopRulerClick($event)"/>
+         @click="handleTopRulerClick()"/>
     <!--            添加垂直辅助线到画布-->
     <template v-for="(item, index) in ruler.guideLineV" :key="index">
       <LowCodeCanvasGuideLine show :orientation="item.orientation" :index="index"/>
     </template>
-    <template v-if="store.currentComponentIsMoving">
-      <div :style="`left:${(parseFloat(store.currentSelectedComponent?.style.left))*store.getScale() + 16}px;
-                    width:${parseFloat(store.currentSelectedComponent?.style.width)*store.getScale()}px;
-                    height: 16px;`"
-           class="absolute bg-primary/25"/>
+    <template v-if="canvasStore.currentComponentIsMoving">
+      <div :style="`left:${(parseFloat(canvasStore.currentSelectedComponent?.style.left))*canvasStore.getScale() + 16}px;
+                    width:${parseFloat(canvasStore.currentSelectedComponent?.style.width)*canvasStore.getScale()}px;
+                    height: 16px;
+                    background-color: ${ruler.moveBlockColor}`"
+           class="absolute"/>
     </template>
   </div>
   <div class="sticky left-0 w-4 z-10 bg-secondary" :style="`width: ${ruler.width}px;height:${height}px;`">
@@ -229,16 +223,17 @@ watch(show, (value) => {
          class="absolute inset-0"
          style="z-index: 10001;"
          @mouseenter="handleLeftRulerMouseEnter($event)"
-         @click="handleLeftRulerClick($event)"/>
+         @click="handleLeftRulerClick()"/>
     <!--            添加水平辅助线到画布-->
     <template v-for="(item, index) in ruler.guideLineH" :key="index">
       <LowCodeCanvasGuideLine show :orientation="item.orientation" :index="index"/>
     </template>
-    <template v-if="store.currentComponentIsMoving">
-      <div :style="`top:${parseFloat(store.currentSelectedComponent?.style.top)*store.getScale()}px;
-                    height:${parseFloat(store.currentSelectedComponent?.style.height)*store.getScale()}px;
-                    width: 16px;`"
-           class="absolute bg-primary/25"/>
+    <template v-if="canvasStore.currentComponentIsMoving">
+      <div :style="`top:${parseFloat(canvasStore.currentSelectedComponent?.style.top)*canvasStore.getScale()}px;
+                    height:${parseFloat(canvasStore.currentSelectedComponent?.style.height)*canvasStore.getScale()}px;
+                    width: 16px;
+                    background-color: ${ruler.moveBlockColor}`"
+           class="absolute"/>
     </template>
   </div>
 </template>

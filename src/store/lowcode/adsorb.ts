@@ -1,6 +1,7 @@
 import {defineStore} from "pinia";
 import {reactive} from "vue";
 import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
+import {useLowCodeRulerStore} from "@/store/lowcode/ruler.ts";
 
 interface AlignmentCondition {
     isNearly: boolean
@@ -10,9 +11,17 @@ interface AlignmentCondition {
     sourcePosition: number
 }
 
+interface GuideLineCondition {
+    isNearly: boolean
+    line: LowCodeGuideLine
+    sourceComponent: CommonComponentConfig
+    sourcePosition: number
+}
+
 export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
     const canvasStore = useLowCodeCanvasStore()
-    const lineAdsorbGap = 3
+    const rulerStore = useLowCodeRulerStore()
+    const lineAdsorbGap = 2.5
     // 六条对齐线，这个对齐线是作用于目标组件上的
     const alignmentLines = reactive<AlignmentLine>({
         vl: {type: 'vl', orientation: 'vertical', show: false},
@@ -33,7 +42,7 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         }
     }
 
-    function checkAdsorbCondition(sourceComponent: CommonComponentConfig) {
+    function checkAlignmentAdsorbCondition(sourceComponent: CommonComponentConfig) {
         clearStatus()
         const sourceTop = parseFloat(sourceComponent.style.top)
         const sourceLeft = parseFloat(sourceComponent.style.left)
@@ -139,10 +148,74 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         })
     }
 
+    function checkGuideLineAdsorbCondition(sourceComponent: CommonComponentConfig) {
+        const sourceTop = parseFloat(sourceComponent.style.top)
+        const sourceLeft = parseFloat(sourceComponent.style.left)
+        const sourceWidth = parseFloat(sourceComponent.style.width)
+        const sourceHeight = parseFloat(sourceComponent.style.height)
+        rulerStore.ruler.guideLineV.forEach((item: LowCodeGuideLine, index: number) => {
+            const guideLinePosition = item.position
+            // 索引0是预览辅助线，直接跳过
+            if (index === 0) return
+            const conditions: GuideLineCondition[] = [
+                {
+                    isNearly: _isNearly(sourceLeft, (guideLinePosition - 16) / canvasStore.getScale()),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition,
+                },
+                {
+                    isNearly: _isNearly(sourceLeft + sourceWidth / 2, (guideLinePosition - 16) / canvasStore.getScale()),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition - sourceWidth / 2,
+                },
+                {
+                    isNearly: _isNearly(sourceLeft + sourceWidth, (guideLinePosition - 16) / canvasStore.getScale()),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition - sourceWidth,
+                },
+            ]
+            for (let i = 0; i < 3; i++) {
+                if (!conditions[i].isNearly) continue
+                conditions[i].sourceComponent.style.left = `${(conditions[i].sourcePosition - 15) / canvasStore.getScale()}px`
+            }
+        })
+        rulerStore.ruler.guideLineH.forEach((item: LowCodeGuideLine, index: number) => {
+            if (index === 0) return
+            const guideLinePosition = item.position
+            const conditions: GuideLineCondition[] = [
+                {
+                    isNearly: _isNearly(sourceTop, guideLinePosition),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition,
+                },
+                {
+                    isNearly: _isNearly(sourceTop + sourceHeight / 2, guideLinePosition),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition - sourceHeight / 2,
+                },
+                {
+                    isNearly: _isNearly(sourceTop + sourceHeight, guideLinePosition),
+                    line: item,
+                    sourceComponent: sourceComponent,
+                    sourcePosition: guideLinePosition - sourceHeight,
+                },
+            ]
+            for (let i = 0; i < 3; i++) {
+                if (!conditions[i].isNearly) continue
+                conditions[i].sourceComponent.style.top = `${conditions[i].sourcePosition + 1}px`
+            }
+        })
+    }
 
     return {
         alignmentLines,
-        checkAdsorbCondition,
+        checkAlignmentAdsorbCondition,
+        checkGuideLineAdsorbCondition,
         clearStatus
     }
 })

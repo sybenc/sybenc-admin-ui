@@ -4,6 +4,9 @@ import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import RangeSlider from "@/components/lowcode/tool-bar/common/RangeSlider.vue";
 import BooleanSwitch from "@/components/lowcode/tool-bar/common/BooleanSwitch.vue";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import ColorPickerTool from "@/components/lowcode/tool-bar/common/ColorPickerTool.vue";
+import {Separator} from "@/components/ui/separator";
+import StringInput from "@/components/lowcode/tool-bar/common/StringInput.vue";
 const store = useLowCodeCanvasStore()
 const {canvas} = store
 </script>
@@ -22,14 +25,18 @@ const {canvas} = store
             :unit="'%'"
             label="缩放"
             v-model="store.ruler.scale"/>
-        <Accordion type="multiple" collapsible>
-          <AccordionItem value="标尺">
-            <AccordionTrigger class="hover:no-underline h-8 p-2 text-xs">标尺</AccordionTrigger>
-            <AccordionContent>
-              <boolean-switch label="显示标尺" v-model="store.ruler.show"/>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+        <separator class="my-2"/>
+        <boolean-switch label="显示标尺" v-model="store.ruler.show"/>
+        <color-picker-tool v-if="store.ruler.show" label="标尺背景色" v-model="store.ruler.moveBlockColor"/>
+        <color-picker-tool v-if="store.ruler.show" label="刻度线填充色" v-model="store.ruler.moveBlockColor"/>
+        <color-picker-tool v-if="store.ruler.show" label="移动块填充色" v-model="store.ruler.moveBlockColor"/>
+        <separator class="my-2"/>
+        <boolean-switch label="显示辅助线" v-model="store.ruler.show"/>
+        <color-picker-tool v-if="store.ruler.show" label="参考线填充色" v-model="store.ruler.moveBlockColor"/>
+        <color-picker-tool v-if="store.ruler.show" label="对齐线填充色" v-model="store.ruler.moveBlockColor"/>
+        <color-picker-tool v-if="store.ruler.show" label="距离线填充色" v-model="store.ruler.moveBlockColor"/>
+        <color-picker-tool v-if="store.ruler.show" label="距离块填充色" v-model="store.ruler.moveBlockColor"/>
+        <separator class="my-2"/>
       </TabsContent>
     </Tabs>
   </div>
