@@ -46,7 +46,6 @@ function drawTopRuler(svg: any, max: number, data: number[], tickSize: number, t
       )
       .call((g: any) => {
         g.select(".domain").remove()
-        g.select('.tick text').remove()
         if (!textShow) {
           g.selectAll('.tick text').remove()
         }
@@ -73,7 +72,6 @@ function drawLeftRuler(svg: any, max: number, data: number[], tickSize: number, 
       )
       .call((g: any) => {
         g.select(".domain").remove()
-        g.select('.tick text').remove()
         if (!textShow) {
           g.selectAll('.tick text').remove()
         }

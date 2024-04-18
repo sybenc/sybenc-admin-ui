@@ -44,7 +44,7 @@ const handleDrop = (e: any) => {
 const handleDragOver = (e: any) => {
   e.dataTransfer.dropEffect = 'copy'
 }
-const handleMouseDown = (e: any, component: CommonComponentConfig) => {
+const handleMouseDownComponentBlock = (e: any, component: CommonComponentConfig) => {
   //记录当前、上一个选中的组件信息
   oldCanvasCurrentSelected.value = canvasCurrentSelected.value
   canvasCurrentSelected.value = component
@@ -75,7 +75,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
         component.style.top = `${top.toFixed(2)}px`
         //寻找对齐线
         if (component.style.rotate === '0deg' || component.style.rotate === '-0deg') {
-          adsorbStore.checkAlignmentAdsorbCondition(component)
+          adsorbStore.checkAlignmentAndDistanceAdsorbCondition(component)
           adsorbStore.checkGuideLineAdsorbCondition(component)
         }
         //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
@@ -92,8 +92,10 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
       }
       //设置组件停止移动
       canvasStore.currentComponentIsMoving = false
-      //隐藏对齐线的显示
-      adsorbStore.clearStatus()
+      //隐藏辅助线的显示
+      adsorbStore.clearAlignmentLineStatus()
+      adsorbStore.clearDistanceLinesStatus()
+
       lowCodeCanvas.value?.removeEventListener('mousemove', onMouseMove)
       lowCodeCanvas.value?.removeEventListener('mouseup', onMouseUp)
     }
@@ -126,7 +128,7 @@ const handleMouseDown = (e: any, component: CommonComponentConfig) => {
             <template v-for="(item, _) in canvas.data" :key="item.id">
               <LowCodeCanvasComponentBlock
                   :component="item"
-                  @mousedown.left.stop="handleMouseDown($event, item)">
+                  @mousedown.left.stop.prevent="handleMouseDownComponentBlock($event, item)">
                 <component
                     :is="getComponent(item.group, item.component)"
                     class="cursor-move"

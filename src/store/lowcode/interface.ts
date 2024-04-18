@@ -33,14 +33,15 @@ interface LowCodeGuideLine {
 }
 
 
-type LineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'
+type AlignmentLineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'
+type DistanceLineType = 'lr' | 'rl' | 'tb' | 'bt'
 
 interface Line {
-    type: LineType
+    type: AlignmentLineType
     orientation: Orientation
     top?: string
     left?: string
     show: boolean
 }
 
-type AlignmentLine = { [key in LineType]: Line }
+type AlignmentLine = { [key in AlignmentLineType]: Line }

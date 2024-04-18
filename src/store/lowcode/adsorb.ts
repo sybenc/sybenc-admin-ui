@@ -18,10 +18,27 @@ interface GuideLineCondition {
     sourcePosition: number
 }
 
+export interface DistanceLine {
+    //两点间距离
+    distance: number
+    targetComponent: CommonComponentConfig | null
+    type: DistanceLineType
+    show: boolean
+}
+
+type DistanceLines = { [key in DistanceLineType]: DistanceLine }
+
 export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
     const canvasStore = useLowCodeCanvasStore()
     const rulerStore = useLowCodeRulerStore()
-    const lineAdsorbGap = 2.5
+    //目标组件集合，用于处理冲突
+    const distanceLines = reactive<DistanceLines>({
+        lr: {type: 'lr', distance: 0, targetComponent: null, show: false},
+        rl: {type: 'rl', distance: 0, targetComponent: null, show: false},
+        tb: {type: 'tb', distance: 0, targetComponent: null, show: false},
+        bt: {type: 'bt', distance: 0, targetComponent: null, show: false}
+    })
+    const lineAdsorbGap = 2
     // 六条对齐线，这个对齐线是作用于目标组件上的
     const alignmentLines = reactive<AlignmentLine>({
         vl: {type: 'vl', orientation: 'vertical', show: false},
@@ -35,19 +52,107 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
     function _isNearly(sourceValue: number, targetValue: number): boolean {
         return Math.abs(sourceValue - targetValue) <= lineAdsorbGap
     }
-
-    function clearStatus() {
-        for (let key in alignmentLines) {
-            alignmentLines[key as LineType].show = false
-        }
-    }
-
-    function checkAlignmentAdsorbCondition(sourceComponent: CommonComponentConfig) {
-        clearStatus()
+    function _searchNearestComponent(sourceComponent: CommonComponentConfig) {
+        if (canvasStore.canvas.data.length === 1) return
         const sourceTop = parseFloat(sourceComponent.style.top)
         const sourceLeft = parseFloat(sourceComponent.style.left)
         const sourceWidth = parseFloat(sourceComponent.style.width)
         const sourceHeight = parseFloat(sourceComponent.style.height)
+        let minTopDistance = 100000
+        let minLeftDistance = 100000
+        let minBottomDistance = 100000
+        let minRightDistance = 100000
+        const hasComponent = [false, false, false, false]
+
+        const distanceMinToShowV = (sourceWidth / 2 < 100 ? 100 : sourceWidth / 2)
+        const distanceMinToShowH = (sourceHeight / 2 < 100 ? 100 : sourceHeight / 2)
+
+        canvasStore.canvas.data.forEach((item: CommonComponentConfig) => {
+            if (item.id === sourceComponent.id) return
+            const targetTop = parseFloat(item.style.top)
+            const targetLeft = parseFloat(item.style.left)
+            const targetWidth = parseFloat(item.style.width)
+            const targetHeight = parseFloat(item.style.height)
+            //是否在源组件上方
+            if (sourceTop > targetTop + targetHeight) {
+                if (Math.abs(sourceLeft + sourceWidth / 2 - targetLeft) <= distanceMinToShowV
+                    || Math.abs(sourceLeft + sourceWidth / 2 - (targetLeft + targetWidth)) <= distanceMinToShowV) {
+                    hasComponent[0] = true
+                    const topDistance = sourceTop - (targetTop + targetHeight)
+                    if (topDistance < minTopDistance) {
+                        minTopDistance = topDistance
+                        distanceLines.tb.distance = topDistance
+                        distanceLines.tb.targetComponent = item
+                    }
+                }
+            }
+            //是否在源组件右方
+            if (sourceLeft + sourceWidth < targetLeft) {
+                if (Math.abs(sourceTop + sourceHeight / 2 - targetTop) <= distanceMinToShowH
+                    || Math.abs(sourceTop + sourceHeight / 2 - (targetTop + targetHeight)) <= distanceMinToShowH) {
+                    hasComponent[1] = true
+                    const rightDistance = targetLeft - (sourceLeft + sourceWidth)
+                    if (rightDistance < minRightDistance) {
+                        minRightDistance = rightDistance
+                        distanceLines.rl.distance = rightDistance
+                        distanceLines.rl.targetComponent = item
+                    }
+                }
+            }
+            //是否在源组件下方
+            if (sourceTop + sourceHeight < targetTop) {
+                if (Math.abs(sourceLeft + sourceWidth / 2 - targetLeft) <= distanceMinToShowV
+                    || Math.abs(sourceLeft + sourceWidth / 2 - (targetLeft + targetWidth)) <= distanceMinToShowV) {
+                    hasComponent[2] = true
+                    const bottomDistance = targetTop - (sourceTop + sourceHeight)
+                    if (bottomDistance < minBottomDistance) {
+                        minBottomDistance = bottomDistance
+                        distanceLines.bt.distance = bottomDistance
+                        distanceLines.bt.targetComponent = item
+                    }
+                }
+            }
+            //是否在源组件左方
+            if (sourceLeft > targetLeft + targetWidth) {
+                if (Math.abs(sourceTop + sourceHeight / 2 - targetTop) <= distanceMinToShowH
+                    || Math.abs(sourceTop + sourceHeight / 2 - (targetTop + targetHeight)) <= distanceMinToShowH) {
+                    hasComponent[3] = true
+                    const leftDistance = sourceLeft - (targetLeft + targetWidth)
+                    if (leftDistance < minLeftDistance) {
+                        minLeftDistance = leftDistance
+                        distanceLines.lr.distance = leftDistance
+                        distanceLines.lr.targetComponent = item
+                    }
+                }
+            }
+            ['tb', 'rl', 'bt', 'lr'].forEach((value: string, index: number) => {
+                distanceLines[value as DistanceLineType].show = hasComponent[index]
+            })
+        })
+    }
+
+    function clearDistanceLinesStatus() {
+        for (let key in distanceLines) {
+            distanceLines[key as DistanceLineType].show = false
+        }
+    }
+    function clearAlignmentLineStatus() {
+        for (let key in alignmentLines) {
+            alignmentLines[key as AlignmentLineType].show = false
+        }
+    }
+
+    /**
+     * 寻找当前移动组件的对齐线和间距线
+     * @param sourceComponent 当前移动的组件
+     */
+    function checkAlignmentAndDistanceAdsorbCondition(sourceComponent: CommonComponentConfig) {
+        clearAlignmentLineStatus()
+        const sourceTop = parseFloat(sourceComponent.style.top)
+        const sourceLeft = parseFloat(sourceComponent.style.left)
+        const sourceWidth = parseFloat(sourceComponent.style.width)
+        const sourceHeight = parseFloat(sourceComponent.style.height)
+        //寻找对齐线
         canvasStore.canvas.data.forEach((item: CommonComponentConfig) => {
             if (item === sourceComponent) return
             const targetTop = parseFloat(item.style.top)
@@ -134,7 +239,6 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             for (let key in conditions) {
                 conditions[key as Orientation].forEach((condition: AlignmentCondition) => {
                     if (!condition.isNearly) return
-
                     if (key === 'vertical') {
                         sourceComponent.style.left = `${condition.sourcePosition}px`
                         condition.line.left = `${condition.linePosition}px`
@@ -146,6 +250,8 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
                 })
             }
         })
+
+        _searchNearestComponent(sourceComponent)
     }
 
     function checkGuideLineAdsorbCondition(sourceComponent: CommonComponentConfig) {
@@ -214,8 +320,10 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
 
     return {
         alignmentLines,
-        checkAlignmentAdsorbCondition,
+        distanceLines,
+        checkAlignmentAndDistanceAdsorbCondition,
         checkGuideLineAdsorbCondition,
-        clearStatus
+        clearAlignmentLineStatus,
+        clearDistanceLinesStatus,
     }
 })

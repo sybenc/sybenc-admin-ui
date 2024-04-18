@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {generateLowCodeStyle} from "@/lib/utils.ts";
+import {cn, generateLowCodeStyle} from "@/lib/utils.ts";
 import {computed, ref, toRef} from "vue";
 import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {Icon} from "@iconify/vue";
@@ -128,7 +128,7 @@ function handleMouseDownOnPoint(point: any, position: string) {
     component.style.width = `${newWidth > 0 ? newWidth : 0}px`
     component.style.left = `${left + (hasL ? disX : 0)}px`
     component.style.top = `${top + (hasT ? disY : 0)}px`
-    adsorbStore.checkAlignmentAdsorbCondition(component)
+    adsorbStore.checkAlignmentAndDistanceAdsorbCondition(component)
   }
 
   const onMouseUp = () => {
@@ -175,14 +175,24 @@ function handleRotate(e: any) {
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
+
+function isDistanceLineTargetComponent(): boolean {
+  for (let key in adsorbStore.distanceLines) {
+    if (adsorbStore.distanceLines[key as DistanceLineType].targetComponent?.id === component?.id
+        && adsorbStore.distanceLines[key as DistanceLineType].show)
+      return true
+  }
+  return false
+}
 </script>
 
 <template>
   <div
       ref="blockContainer"
-      class="absolute grid grid-cols-1 cursor-move"
+      :class="cn('absolute grid grid-cols-1 cursor-move',
+                 isActive?'shape':'',
+                 isDistanceLineTargetComponent()?'dashed-shape':'')"
       :style="generateLowCodeStyle(component.style)+`z-index:${component.layer};opacity:1;`"
-      :class="isActive?'shape':''"
       @click.stop.prevent="selectComponent($event)">
     <ContextMenu>
       <ContextMenuTrigger>
@@ -255,6 +265,10 @@ function handleRotate(e: any) {
 <style scoped lang="css">
 .shape {
   outline: 1px solid hsl(var(--primary));
+}
+
+.dashed-shape {
+  outline: 1px dashed hsl(var(--primary));
 }
 
 .point-shape {
