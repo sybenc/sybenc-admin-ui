@@ -9,7 +9,7 @@ import TopLeft from "@/components/lowcode/tool-bar/common/TopLeft.vue";
 import RangeSlider from "@/components/lowcode/tool-bar/common/RangeSlider.vue";
 import StringInput from "@/components/lowcode/tool-bar/common/StringInput.vue";
 import Align from "@/components/lowcode/tool-bar/common/Align.vue";
-import Layout from "@/components/lowcode/tool-bar/common/Layout.vue";
+import Layout from "@/components/lowcode/tool-bar/common/Display.vue";
 const store = useLowCodeCanvasStore()
 const {canvas} = store
 const currentSelectedComponent = toRef(store, 'currentSelectedComponent')

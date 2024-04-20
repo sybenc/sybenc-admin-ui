@@ -54,33 +54,26 @@ const handleMouseDownComponentBlock = (e: any, component: CommonComponentConfig)
   const oldComponent = cloneDeep(component)
   if (lowCodeCanvas.value) {
     const scale = canvasStore.getScale()
-    const canvasRect = lowCodeCanvas.value.getBoundingClientRect()
     //获取鼠标相对于画布的偏移量
-    let offsetX = e.clientX - canvasRect.left
-    let offsetY = e.clientY - canvasRect.top
-    const onMouseMove = (mouseEvent: MouseEvent) => {
+    const startY = e.clientY
+    const startX = e.clientX
+    const positionX = parseFloat(component.style.left)
+    const positionY = parseFloat(component.style.top)
+    const onMouseMove = (moveEvent: MouseEvent) => {
       //设置组件正在移动
       canvasStore.currentComponentIsMoving = true
       if (component) {
-        //移动过程中鼠标相对于画布的偏移量
-        const moveOffsetX = mouseEvent.clientX - canvasRect.left
-        const moveOffsetY = mouseEvent.clientY - canvasRect.top
-        //计算两者差值并缩放，缩放是为了让元素在缩放情况下也能跟着鼠标移动
-        const diffX = (moveOffsetX - offsetX) / scale
-        const diffY = (moveOffsetY - offsetY) / scale
-        //计算原本坐标值和计算的到的偏移差值之和
-        let left = parseFloat(component.style.left) + diffX
-        let top = parseFloat(component.style.top) + diffY
-        component.style.left = `${left.toFixed(2)}px`
-        component.style.top = `${top.toFixed(2)}px`
+        const currX = moveEvent.clientX
+        const currY = moveEvent.clientY
+        const moveOffsetX = (currX - startX) / scale + positionX
+        const moveOffsetY = (currY - startY) / scale + positionY
+        component.style.left = `${moveOffsetX.toFixed(2)}px`
+        component.style.top = `${moveOffsetY.toFixed(2)}px`
         //寻找对齐线
         if (component.style.rotate === '0deg' || component.style.rotate === '-0deg') {
-          adsorbStore.checkAlignmentAndDistanceAdsorbCondition(component)
-          adsorbStore.checkGuideLineAdsorbCondition(component)
+          adsorbStore.checkAlignmentLineCondition(component, currX - startX, currY - startY)
+          adsorbStore.checkGuideLineCondition(component)
         }
-        //设置当前偏移量，这是为了让下一次移动的坐标根据上一次位置的差值计算而出了
-        offsetX = moveOffsetX
-        offsetY = moveOffsetY
       }
     }
     const onMouseUp = () => {
@@ -95,7 +88,7 @@ const handleMouseDownComponentBlock = (e: any, component: CommonComponentConfig)
       //隐藏辅助线的显示
       adsorbStore.clearAlignmentLineStatus()
       adsorbStore.clearDistanceLinesStatus()
-
+      adsorbStore.clearDistanceBlocksStatus()
       lowCodeCanvas.value?.removeEventListener('mousemove', onMouseMove)
       lowCodeCanvas.value?.removeEventListener('mouseup', onMouseUp)
     }
