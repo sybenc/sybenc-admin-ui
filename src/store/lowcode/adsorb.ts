@@ -3,7 +3,6 @@ import {reactive} from "vue";
 import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
 import {useLowCodeRulerStore} from "@/store/lowcode/ruler.ts";
 import {remove, sortBy} from "lodash";
-import {number} from "zod";
 
 interface AlignmentCondition {
     isNearly: boolean
@@ -49,6 +48,12 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         tb: {type: 'tb', distance: 0, targetComponent: null, show: false},
         bt: {type: 'bt', distance: 0, targetComponent: null, show: false}
     })
+    //间距、间距块吸附条件
+    const distanceAdsorbCondition = {
+        vertical: [4, 8, 12, 16, 20, 24],
+        horizontal: [4, 8, 12, 16, 20, 24],
+    }
+
     //间距块
     const distanceBlocks = reactive<{ [key in Orientation]: Map<number, DistanceBlock[]> }>({
         vertical: new Map<number, DistanceBlock[]>(),
@@ -82,10 +87,12 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             distanceLines[key as DistanceLineType].show = false
         }
     }
-    function clearDistanceBlocksStatus(){
+
+    function clearDistanceBlocksStatus() {
         distanceBlocks.vertical.clear()
         distanceBlocks.horizontal.clear()
     }
+
     function clearAlignmentLineStatus() {
         for (let key in alignmentLines) {
             alignmentLines[key as AlignmentLineType].show = false
@@ -108,8 +115,8 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         const componentOnAlignmentLine: {
             [key in Orientation]: [position1: number, position2: number, component: CommonComponentConfig][]
         } = {
-            vertical: [],
-            horizontal: []
+            vertical: [[sourceTop, sourceTop + sourceHeight, sourceComponent]],
+            horizontal: [[sourceLeft, sourceLeft + sourceWidth, sourceComponent]]
         }
 
         //是否达到展示间距线的条件，只有在对齐线上的、距离源组件最近的组件才显示间距线
@@ -135,32 +142,127 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             }
         }
 
+
         //是否达到间距吸附条件
         function checkDistanceAdsorb(targetComponent: CommonComponentConfig, distanceLine: DistanceLine) {
-            const distanceAdsorbCondition = [8, 16, 24]
             const targetTop = parseFloat(targetComponent.style.top)
             const targetLeft = parseFloat(targetComponent.style.left)
             const targetWidth = parseFloat(targetComponent.style.width)
             const targetHeight = parseFloat(targetComponent.style.height)
-            distanceAdsorbCondition.forEach((item: number) => {
-                if (_isNearly(item, distanceLine.distance, 4)) {
-                    switch (distanceLine.type) {
-                        case 'tb':
-                            sourceComponent.style.top = `${targetTop + targetHeight + item}px`
-                            break
-                        case 'rl':
-                            sourceComponent.style.left = `${targetLeft - item - sourceWidth}px`
-                            break
-                        case 'bt':
-                            sourceComponent.style.top = `${targetTop - item - sourceHeight}px`
-                            break
-                        case 'lr':
-                            sourceComponent.style.left = `${targetLeft + targetWidth + item}px`
-                            break
-                    }
+            distanceAdsorbCondition.vertical.forEach((item: number) => {
+                if (_isNearly(item, distanceLine.distance, 2)) {
+                    if (distanceLine.type === 'tb')
+                        sourceComponent.style.top = `${targetTop + targetHeight + item}px`
+                    else if (distanceLine.type === 'bt')
+                        sourceComponent.style.top = `${targetTop - item - sourceHeight}px`
                     distanceLine.distance = item
                 }
             })
+            for (let key of distanceBlocks.vertical.keys()) {
+                if (_isNearly(key, distanceLine.distance, 2)) {
+                    if (distanceLine.type === 'tb')
+                        sourceComponent.style.top = `${targetTop + targetHeight + key}px`
+                    else if (distanceLine.type === 'bt')
+                        sourceComponent.style.top = `${targetTop - key - sourceHeight}px`
+                    distanceLine.distance = key
+                    break
+                }
+            }
+            distanceAdsorbCondition.horizontal.forEach((item: number) => {
+                if (_isNearly(item, distanceLine.distance, 2)) {
+                    if (distanceLine.type === 'rl')
+                        sourceComponent.style.left = `${targetLeft - item - sourceWidth}px`
+                    else if (distanceLine.type === 'lr')
+                        sourceComponent.style.left = `${targetLeft + targetWidth + item}px`
+                    distanceLine.distance = item
+                }
+            })
+            for (let key of distanceBlocks.horizontal.keys()) {
+                if (_isNearly(key, distanceLine.distance, 2)) {
+                    if (distanceLine.type === 'rl')
+                        sourceComponent.style.left = `${targetLeft - key - sourceWidth}px`
+                    else if (distanceLine.type === 'lr')
+                        sourceComponent.style.left = `${targetLeft + targetWidth + key}px`
+                    distanceLine.distance = key
+                    break
+                }
+            }
+        }
+
+        function checkDistanceBlocks() {
+            // 检索间距块位置
+            clearDistanceBlocksStatus()
+            const verticalComponents = sortBy(componentOnAlignmentLine.vertical, tuple => tuple[0])
+            const horizontalComponents = sortBy(componentOnAlignmentLine.horizontal, tuple => tuple[0])
+
+            // 如果前后两个组件相交，不计入间距块
+            for (let i = 0; i < verticalComponents.length - 1; i++) {
+                if (!verticalComponents[i + 1]) break
+                let distance = verticalComponents[i + 1][0] - verticalComponents[i][1]
+                const top = parseFloat(verticalComponents[i][2].style.top)
+                const left = parseFloat(verticalComponents[i][2].style.left)
+                const width = parseFloat(verticalComponents[i][2].style.width)
+                const height = parseFloat(verticalComponents[i][2].style.height)
+                if (distance <= 0) continue
+                else {
+                    //防止源组件周围间距块闪烁
+                    if (verticalComponents[i][2].id === sourceComponent.id
+                        || verticalComponents[i + 1][2].id === sourceComponent.id) {
+                        distanceAdsorbCondition.vertical.forEach((item: number) => {
+                            if (_isNearly(item, distance, 2))
+                                distance = item
+                        })
+                        for (let key of distanceBlocks.vertical.keys()) {
+                            if (_isNearly(key, distance, 2))
+                                distance = key
+                        }
+                    }
+                    const block: DistanceBlock = {
+                        top: top + height,
+                        left: left,
+                        width: width,
+                        height: distance,
+                    }
+                    if (distanceBlocks.vertical.has(distance)) {
+                        distanceBlocks.vertical.get(distance)?.push(block)
+                    } else {
+                        distanceBlocks.vertical.set(distance, [block])
+                    }
+                }
+            }
+            for (let i = 0; i < horizontalComponents.length - 1; i++) {
+                if (!horizontalComponents[i + 1]) break
+                let distance = horizontalComponents[i + 1][0] - horizontalComponents[i][1]
+                const top = parseFloat(horizontalComponents[i][2].style.top)
+                const left = parseFloat(horizontalComponents[i][2].style.left)
+                const width = parseFloat(horizontalComponents[i][2].style.width)
+                const height = parseFloat(horizontalComponents[i][2].style.height)
+                if (distance <= 0) continue
+                else {
+                    if (horizontalComponents[i][2].id === sourceComponent.id
+                        || horizontalComponents[i + 1][2].id === sourceComponent.id) {
+                        distanceAdsorbCondition.horizontal.forEach((item: number) => {
+                            if (_isNearly(item, distance, 2))
+                                distance = item
+                            for (let key of distanceBlocks.horizontal.keys()) {
+                                if (_isNearly(key, distance, 2))
+                                    distance = key
+                            }
+                        })
+                    }
+                    const block: DistanceBlock = {
+                        top: top,
+                        left: left + width,
+                        width: distance,
+                        height: height
+                    }
+                    if (distanceBlocks.horizontal.has(distance)) {
+                        distanceBlocks.horizontal.get(distance)?.push(block)
+                    } else {
+                        distanceBlocks.horizontal.set(distance, [block])
+                    }
+                }
+            }
         }
 
         canvasStore.canvas.data.forEach((item: CommonComponentConfig) => {
@@ -169,8 +271,7 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             const targetLeft = parseFloat(item.style.left)
             const targetWidth = parseFloat(item.style.width)
             const targetHeight = parseFloat(item.style.height)
-
-            //目标组件的内部是不是包含了对齐线的位置，这里主要为寻找距离块作准备
+            //目标组件的是不是包含了对齐线的位置，这里主要为寻找距离块作准备
             if (needToShow.includes('vr')) {
                 if (targetLeft + targetWidth >= parseFloat(alignmentLines.vr.left as string)
                     && targetLeft <= parseFloat(alignmentLines.vr.left as string)) {
@@ -203,6 +304,7 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
                     componentOnAlignmentLine.horizontal.push([targetLeft, targetLeft + targetWidth, item])
                 }
             }
+
             //是否在源组件上方
             if (sourceTop >= targetTop + targetHeight) {
                 if (showCondition(item, 'tb')) {
@@ -274,72 +376,17 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             ['tb', 'rl', 'bt', 'lr'].forEach((value: string, index: number) => {
                 distanceLines[value as DistanceLineType].show = hasComponent[index]
             })
+
         })
-        // 检索间距块位置
-        clearDistanceBlocksStatus()
-        componentOnAlignmentLine.vertical.push([sourceTop, sourceTop + sourceHeight, sourceComponent])
-        const verticalComponents = sortBy(componentOnAlignmentLine.vertical, tuple => tuple[0])
-        componentOnAlignmentLine.vertical.push([sourceLeft, sourceLeft + sourceWidth, sourceComponent])
-        const horizontalComponents = sortBy(componentOnAlignmentLine.horizontal, tuple => tuple[0])
-        console.log(horizontalComponents)
-        for (let i = 0; i < verticalComponents.length - 1; i++) {
-            if (!verticalComponents[i + 1]) break
-            const distance = verticalComponents[i + 1][0] - verticalComponents[i][1]
-            const top = parseFloat(verticalComponents[i][2].style.top)
-            const left = parseFloat(verticalComponents[i][2].style.left)
-            const width = parseFloat(verticalComponents[i][2].style.width)
-            const height = parseFloat(verticalComponents[i][2].style.height)
-            if (distance <= 0) continue
-            else {
-                if (distanceBlocks.vertical.has(distance)) {
-                    distanceBlocks.vertical.get(distance)?.push({
-                        top: top + height,
-                        left: left,
-                        width: width,
-                        height: distance
-                    })
-                } else {
-                    distanceBlocks.vertical.set(distance, [{
-                        top: top + height,
-                        left: left,
-                        width: width,
-                        height: distance
-                    }])
-                }
-            }
-        }
-        for (let i = 0; i < horizontalComponents.length - 1; i++) {
-            if (!horizontalComponents[i + 1]) break
-            const distance = horizontalComponents[i + 1][0] - horizontalComponents[i][1]
-            const top = parseFloat(horizontalComponents[i][2].style.top)
-            const left = parseFloat(horizontalComponents[i][2].style.left)
-            const width = parseFloat(horizontalComponents[i][2].style.width)
-            const height = parseFloat(horizontalComponents[i][2].style.height)
-            if (distance <= 0) continue
-            else {
-                if (distanceBlocks.horizontal.has(distance)) {
-                    distanceBlocks.horizontal.get(distance)?.push({
-                        top: top,
-                        left: left + width,
-                        width: distance,
-                        height: height
-                    })
-                } else {
-                    distanceBlocks.horizontal.set(distance, [{
-                        top: top,
-                        left: left + width,
-                        width: distance,
-                        height: height
-                    }])
-                }
-            }
-        }
+        checkDistanceBlocks()
     }
 
     function _chooseTrueAlignmentLine(needToShow: AlignmentLineType[], diffX: number, diffY: number) {
         //元素向左移动，从左到右显示三条竖线
         if (diffX < 0) {
-            if (needToShow.includes('vl')) {
+            if (needToShow.includes('vl') && needToShow.includes('vr')) {
+                alignmentLines.vc.show = true
+            } else if (needToShow.includes('vl')) {
                 alignmentLines.vl.show = true
             } else if (needToShow.includes('vc')) {
                 alignmentLines.vc.show = true
@@ -349,7 +396,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         }
         //反之，从左往右显示三天竖线
         else {
-            if (needToShow.includes('vr')) {
+            if (needToShow.includes('vl') && needToShow.includes('vr')) {
+                alignmentLines.vc.show = true
+            } else if (needToShow.includes('vr')) {
                 alignmentLines.vr.show = true
             } else if (needToShow.includes('vc')) {
                 alignmentLines.vc.show = true
@@ -359,7 +408,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         }
         //如果向上移动
         if (diffY < 0) {
-            if (needToShow.includes('ht')) {
+            if (needToShow.includes('ht') && needToShow.includes('hb')) {
+                alignmentLines.hc.show = true
+            } else if (needToShow.includes('ht')) {
                 alignmentLines.ht.show = true
             } else if (needToShow.includes('hc')) {
                 alignmentLines.hc.show = true
@@ -369,7 +420,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         }
         //如果向下移动
         else {
-            if (needToShow.includes('hb')) {
+            if (needToShow.includes('ht') && needToShow.includes('hb')) {
+                alignmentLines.hc.show = true
+            } else if (needToShow.includes('hb')) {
                 alignmentLines.hb.show = true
             } else if (needToShow.includes('hc')) {
                 alignmentLines.hc.show = true
@@ -512,19 +565,19 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             if (index === 0) return
             const conditions: GuideLineCondition[] = [
                 {
-                    isNearly: _isNearly(sourceLeft, (guideLinePosition - 16) / canvasStore.getScale()),
+                    isNearly: _isNearly(sourceLeft, (guideLinePosition - 16) / canvasStore.getScale(), 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition,
                 },
                 {
-                    isNearly: _isNearly(sourceLeft + sourceWidth / 2, (guideLinePosition - 16) / canvasStore.getScale()),
+                    isNearly: _isNearly(sourceLeft + sourceWidth / 2, (guideLinePosition - 16) / canvasStore.getScale(), 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition - sourceWidth / 2,
                 },
                 {
-                    isNearly: _isNearly(sourceLeft + sourceWidth, (guideLinePosition - 16) / canvasStore.getScale()),
+                    isNearly: _isNearly(sourceLeft + sourceWidth, (guideLinePosition - 16) / canvasStore.getScale(), 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition - sourceWidth,
@@ -540,19 +593,19 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
             const guideLinePosition = item.position
             const conditions: GuideLineCondition[] = [
                 {
-                    isNearly: _isNearly(sourceTop, guideLinePosition),
+                    isNearly: _isNearly(sourceTop, guideLinePosition, 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition,
                 },
                 {
-                    isNearly: _isNearly(sourceTop + sourceHeight / 2, guideLinePosition),
+                    isNearly: _isNearly(sourceTop + sourceHeight / 2, guideLinePosition, 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition - sourceHeight / 2,
                 },
                 {
-                    isNearly: _isNearly(sourceTop + sourceHeight, guideLinePosition),
+                    isNearly: _isNearly(sourceTop + sourceHeight, guideLinePosition, 4),
                     line: item,
                     sourceComponent: sourceComponent,
                     sourcePosition: guideLinePosition - sourceHeight,

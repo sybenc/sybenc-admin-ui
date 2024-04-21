@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {DistanceLine, useLowCodeAdsorbStore} from "@/store/lowcode/adsorb.ts";
 import {useLowCodeCanvasStore} from "@/store/lowcode/canvas.ts";
-import {computed, ref} from "vue";
 
 const adsorbStore = useLowCodeAdsorbStore()
 const {
@@ -36,7 +35,7 @@ function getDistanceLineStyle(line: DistanceLine): {
   const targetWidth = parseFloat(targetComponentStyle.width)
   const targetHeight = parseFloat(targetComponentStyle.height)
   if (line.type === 'lr') {
-    const top = curTop + targetHeight / 2
+    const top = curTop + curHeight / 2
     const left = targetLeft + targetWidth
     let dashedTopLineStyle = ''
 
@@ -156,18 +155,29 @@ function getDistanceLineStyle(line: DistanceLine): {
   </template>
   <!--  两个方向的间距块-->
   <template
-      v-for="(value,index) in distanceBlocks.vertical.get(distanceLines.tb.show?distanceLines.tb.distance:distanceLines.bt.distance)"
+      v-for="(value,index) in distanceBlocks.vertical.get(distanceLines.tb.show
+                                                          ? distanceLines.tb.distance
+                                                          : distanceLines.bt.distance)"
       :key="index">
-    <div class="absolute bg-red-500/20"
+    <!--    ts类型推断错误不用管，这里已经确定数组undefined-->
+    <div v-if="distanceBlocks.vertical.get(distanceLines.tb.show
+                                                          ? distanceLines.tb.distance
+                                                          : distanceLines.bt.distance).length > 1"
+         class="absolute bg-red-500/20"
          :style="`width:${value.width}px;
                   height:${value.height}px;
                   top:${value.top}px;
                   left:${value.left}px;`"/>
   </template>
   <template
-      v-for="(value,index) in distanceBlocks.horizontal.get(distanceLines.lr.show?distanceLines.lr.distance:distanceLines.rl.distance)"
+      v-for="(value,index) in distanceBlocks.horizontal.get(distanceLines.lr.show
+                                                            ? distanceLines.lr.distance
+                                                            : distanceLines.rl.distance)"
       :key="index">
-    <div class="absolute bg-red-500/20"
+    <div v-if="distanceBlocks.horizontal.get(distanceLines.lr.show
+                                                            ? distanceLines.lr.distance
+                                                            : distanceLines.rl.distance).length > 1"
+         class="absolute bg-red-500/20"
          :style="`width:${value.width}px;
                   height:${value.height}px;
                   top:${value.top}px;

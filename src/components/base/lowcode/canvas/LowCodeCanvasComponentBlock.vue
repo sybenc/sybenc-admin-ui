@@ -128,7 +128,7 @@ function handleMouseDownOnPoint(point: any, position: string) {
     component.style.width = `${newWidth > 0 ? newWidth : 0}px`
     component.style.left = `${left + (hasL ? disX : 0)}px`
     component.style.top = `${top + (hasT ? disY : 0)}px`
-    adsorbStore.checkAlignmentLineCondition(component)
+    adsorbStore.checkAlignmentLineCondition(component, disX, disY)
   }
 
   const onMouseUp = () => {
@@ -175,25 +175,13 @@ function handleRotate(e: any) {
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
 }
-
-function isDistanceLineTargetComponent(): boolean {
-  for (let key in adsorbStore.distanceLines) {
-    //虚线边框只有距离线指定的目标组件，且距离线长度不为0，才会被激活
-    if (adsorbStore.distanceLines[key as DistanceLineType].targetComponent?.id === component?.id
-        && adsorbStore.distanceLines[key as DistanceLineType].show
-        && adsorbStore.distanceLines[key as DistanceLineType].distance!==0)
-      return true
-  }
-  return false
-}
 </script>
 
 <template>
   <div
       ref="blockContainer"
       :class="cn('absolute grid grid-cols-1 cursor-move',
-                 isActive?'shape':'',
-                 isDistanceLineTargetComponent()?'dashed-shape':'')"
+                 isActive?'shape':'')"
       :style="generateLowCodeStyle(component.style)+`z-index:${component.layer};opacity:1;`"
       @click.stop.prevent="selectComponent($event)">
     <ContextMenu>
