@@ -128,7 +128,13 @@ function handleMouseDownOnPoint(point: any, position: string) {
     component.style.width = `${newWidth > 0 ? newWidth : 0}px`
     component.style.left = `${left + (hasL ? disX : 0)}px`
     component.style.top = `${top + (hasT ? disY : 0)}px`
-    adsorbStore.checkAlignmentLineCondition(component, disX, disY)
+    //寻找对齐线
+    if (component.style.rotate === '0deg' || component.style.rotate === '-0deg') {
+      adsorbStore.checkAlignmentLineCondition(component, disX, disY)
+      adsorbStore.checkGuideLineCondition(component)
+      //寻找缩放线
+      adsorbStore.checkResizeCondition(component)
+    }
   }
 
   const onMouseUp = () => {
@@ -136,6 +142,11 @@ function handleMouseDownOnPoint(point: any, position: string) {
     if (newComponent && oldComponent) {
       execute(createCommandChangeComponentStyle, newComponent, oldComponent)
     }
+    //隐藏辅助线的显示
+    adsorbStore.clearAlignmentLineStatus()
+    adsorbStore.clearDistanceLinesStatus()
+    adsorbStore.clearDistanceBlocksStatus()
+    adsorbStore.clearResizeLinesStatus()
     document.removeEventListener('mousemove', onMouseMove)
     document.removeEventListener('mouseup', onMouseUp)
   }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-icons/vue": "^1.0.0",
+    "@types/axios": "^0.14.0",
     "@vee-validate/zod": "^4.12.6",
     "@vueuse/core": "^10.9.0",
     "axios": "^1.6.8",

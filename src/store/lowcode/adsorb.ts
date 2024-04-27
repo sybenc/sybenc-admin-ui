@@ -28,13 +28,19 @@ export interface DistanceLine {
 }
 
 type DistanceLines = { [key in DistanceLineType]: DistanceLine }
-type PositionRelationship = 'separate' | 'contain' | 'overlap'
 
 export interface DistanceBlock {
     top: number
     left: number
     height?: number
     width?: number
+}
+
+export interface ResizeLine {
+    top: number
+    left: number
+    height: number
+    width: number
 }
 
 
@@ -48,12 +54,11 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         tb: {type: 'tb', distance: 0, targetComponent: null, show: false},
         bt: {type: 'bt', distance: 0, targetComponent: null, show: false}
     })
-    //间距、间距块吸附条件
+    //间距吸附条件
     const distanceAdsorbCondition = {
         vertical: [4, 8, 12, 16, 20, 24],
         horizontal: [4, 8, 12, 16, 20, 24],
     }
-
     //间距块
     const distanceBlocks = reactive<{ [key in Orientation]: Map<number, DistanceBlock[]> }>({
         vertical: new Map<number, DistanceBlock[]>(),
@@ -61,7 +66,7 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
     })
     //默认吸附距离
     const lineAdsorbGap = 3
-    // 六条对齐线，这个对齐线是作用于目标组件上的
+    //六条对齐线，这个对齐线是作用于目标组件上的
     const alignmentLines = reactive<AlignmentLine>({
         vl: {type: 'vl', orientation: 'vertical', show: false},
         vc: {type: 'vc', orientation: 'vertical', show: false},
@@ -69,6 +74,11 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         ht: {type: 'ht', orientation: 'horizontal', show: false},
         hc: {type: 'hc', orientation: 'horizontal', show: false},
         hb: {type: 'hb', orientation: 'horizontal', show: false}
+    })
+    //缩放线
+    const resizeLines = reactive<{ [key in 'height' | 'width']: ResizeLine[] }>({
+        height: [],
+        width: []
     })
 
     /**
@@ -97,6 +107,11 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         for (let key in alignmentLines) {
             alignmentLines[key as AlignmentLineType].show = false
         }
+    }
+
+    function clearResizeLinesStatus() {
+        resizeLines.height.splice(0, resizeLines.height.length)
+        resizeLines.width.splice(0, resizeLines.width.length)
     }
 
     function _checkDistanceLineCondition(needToShow: AlignmentLineType[], sourceComponent: CommonComponentConfig) {
@@ -385,7 +400,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         //元素向左移动，从左到右显示三条竖线
         if (diffX < 0) {
             if (needToShow.includes('vl') && needToShow.includes('vr')) {
+                alignmentLines.vl.show = true
                 alignmentLines.vc.show = true
+                alignmentLines.vr.show = true
             } else if (needToShow.includes('vl')) {
                 alignmentLines.vl.show = true
             } else if (needToShow.includes('vc')) {
@@ -397,7 +414,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         //反之，从左往右显示三天竖线
         else {
             if (needToShow.includes('vl') && needToShow.includes('vr')) {
+                alignmentLines.vl.show = true
                 alignmentLines.vc.show = true
+                alignmentLines.vr.show = true
             } else if (needToShow.includes('vr')) {
                 alignmentLines.vr.show = true
             } else if (needToShow.includes('vc')) {
@@ -409,7 +428,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         //如果向上移动
         if (diffY < 0) {
             if (needToShow.includes('ht') && needToShow.includes('hb')) {
+                alignmentLines.ht.show = true
                 alignmentLines.hc.show = true
+                alignmentLines.hb.show = true
             } else if (needToShow.includes('ht')) {
                 alignmentLines.ht.show = true
             } else if (needToShow.includes('hc')) {
@@ -421,7 +442,9 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         //如果向下移动
         else {
             if (needToShow.includes('ht') && needToShow.includes('hb')) {
+                alignmentLines.ht.show = true
                 alignmentLines.hc.show = true
+                alignmentLines.hb.show = true
             } else if (needToShow.includes('hb')) {
                 alignmentLines.hb.show = true
             } else if (needToShow.includes('hc')) {
@@ -618,14 +641,40 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
         })
     }
 
+    function checkResizeCondition(sourceComponent: CommonComponentConfig) {
+        clearResizeLinesStatus()
+        const sourceHeight = parseFloat(sourceComponent.style.height)
+        const sourceWidth = parseFloat(sourceComponent.style.width)
+        canvasStore.canvas.data.forEach((item: CommonComponentConfig) => {
+            const targetTop = parseFloat(item.style.top)
+            const targetLeft = parseFloat(item.style.left)
+            const targetWidth = parseFloat(item.style.width)
+            const targetHeight = parseFloat(item.style.height)
+            if (sourceWidth === targetWidth) {
+                resizeLines.width.push({top: targetTop - 8, left: targetLeft, width: targetWidth, height: 1})
+            }
+            if (sourceHeight === targetHeight) {
+                resizeLines.height.push({top: targetTop, left: targetLeft - 8, width: 1, height: targetHeight})
+            }
+        })
+        //如果数组长度为1，说明没有和源组件长宽一样的目标组件，清空数组
+        if (resizeLines.width.length === 1)
+            resizeLines.width.splice(0, 1)
+        if (resizeLines.height.length === 1)
+            resizeLines.height.splice(0, 1)
+    }
+
     return {
         alignmentLines,
         distanceLines,
         distanceBlocks,
+        resizeLines,
         checkAlignmentLineCondition,
         checkGuideLineCondition,
         clearAlignmentLineStatus,
         clearDistanceLinesStatus,
-        clearDistanceBlocksStatus
+        clearDistanceBlocksStatus,
+        clearResizeLinesStatus,
+        checkResizeCondition,
     }
 })

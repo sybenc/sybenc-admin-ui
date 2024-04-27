@@ -35,6 +35,8 @@ interface LowCodeGuideLine {
 
 type AlignmentLineType = 'vl' | 'vc' | 'vr' | 'ht' | 'hc' | 'hb'
 type DistanceLineType = 'lr' | 'rl' | 'tb' | 'bt'
+type PositionRelationship = 'separate' | 'contain' | 'intersection'
+
 
 interface Line {
     type: AlignmentLineType

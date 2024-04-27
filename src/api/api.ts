@@ -1,10 +1,10 @@
-import axios from 'axios'
-import type { AxiosInstance} from 'axios'
+import { exampleModel } from './type/hello'
+import httpRequest from "@/api/axios.ts";
 
+enum API {
+    example = '/user/list'
+}
 
-const service: AxiosInstance = axios.create({
-    baseURL: '/api',
-    timeout: 5000
-})
-
-export default service
+export const exampleAPI = () => {
+    return httpRequest.get<exampleModel[]>({ url: API.example })
+}

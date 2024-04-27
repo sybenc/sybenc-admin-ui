@@ -8,7 +8,6 @@ import {createPinia} from 'pinia'
 import { VueColor } from 'vue-color-next'
 import '@/assets/color-picker.css'
 
-
 const app = createApp(App)
 const pinia = createPinia()
 
