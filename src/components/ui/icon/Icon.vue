@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import {iconComponents, type IconName} from "@/components/ui/icon/index.ts";
+import {cn} from "@/lib/utils.ts";
 
 const props = defineProps({
   name: {type: String as () => IconName, required: true},
-  color: {type: String, default: 'hsl(var(--primary))'},
+  class: {type: String}
 })
-const {name, color} = props
+const {name} = props
 </script>
 
 <template>
-  <component :is="iconComponents[name]"
-             :color="color"/>
+  <component :is="iconComponents[name]" :class="cn('text-primary', props.class)"/>
 </template>
 
 <style scoped lang="css">

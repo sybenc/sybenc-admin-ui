@@ -11,4 +11,6 @@ interface ImportMeta {
     readonly env: ImportMetaEnv
 }
 
+export type StatusType = 'success' | 'info' | 'error' | 'warning'
+
 

@@ -180,7 +180,6 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
                     else if (distanceLine.type === 'bt')
                         sourceComponent.style.top = `${targetTop - key - sourceHeight}px`
                     distanceLine.distance = key
-                    break
                 }
             }
             distanceAdsorbCondition.horizontal.forEach((item: number) => {
@@ -199,7 +198,6 @@ export const useLowCodeAdsorbStore = defineStore('low-code-adsorb', () => {
                     else if (distanceLine.type === 'lr')
                         sourceComponent.style.left = `${targetLeft + targetWidth + key}px`
                     distanceLine.distance = key
-                    break
                 }
             }
         }
